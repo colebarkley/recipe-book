@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Banana Chocolate Chip Muffins - Family Recipe Book</title>
+  
+  <!-- Links to your central stylesheet -->
+  <link rel="stylesheet" href="style.css">
+  <!-- If this file is saved inside a 'recipes/' subfolder, use: href="../style.css" -->
+
+  <style>
+    /* Specific styles for individual recipe pages */
+    .back-link {
+      display: inline-block;
+      margin-bottom: 20px;
+      color: var(--secondary-color, #4a6b5d);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .recipe-header {
+      border-bottom: 2px dashed var(--border-color, #e5e7eb);
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+
+    .recipe-meta-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      background-color: #f0f4f2;
+      padding: 12px 16px;
+      border-radius: 8px;
+      color: var(--secondary-color, #4a6b5d);
+      font-weight: 500;
+      font-size: 0.95rem;
+      margin-top: 12px;
+    }
+
+    /* Clickable Checkboxes for Ingredients */
+    .checklist {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .checklist li {
+      padding: 10px 0;
+      border-bottom: 1px dashed var(--border-color, #e5e7eb);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .checklist input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary-color, #c85a32);
+      cursor: pointer;
+    }
+
+    /* Strikethrough completed directions */
+    .instructions-list {
+      padding-left: 20px;
+    }
+
+    .instructions-list li {
+      margin-bottom: 16px;
+      padding-left: 4px;
+    }
+
+    .instructions-list li::marker {
+      color: var(--primary-color, #c85a32);
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Top Navigation -->
+    <a href="index.html" class="back-link">&larr; Back to all recipes</a>
+    <!-- Use href="../index.html" if this file is placed inside a recipes/ subfolder -->
+
+    <!-- Recipe Header -->
+    <header class="recipe-header">
+      <h1>Banana Chocolate Chip Muffins</h1>
+      <p class="subtitle">Moist, bakery-style muffins perfect for using up ripe bananas.</p>
+      
+      <div class="recipe-meta-bar">
+        <span>⏱️ <strong>Prep:</strong> 10 mins</span>
+        <span>🔥 <strong>Bake:</strong> 18–22 mins</span>
+        <span>🧁 <strong>Yield:</strong> 12 muffins</span>
+      </div>
+    </header>
+
+    <!-- Ingredients Section -->
+    <section>
+      <h2>Ingredients</h2>
+      <ul class="checklist">
+        <li><label><input type="checkbox"> 3 ripe bananas, mashed</label></li>
+        <li><label><input type="checkbox"> ⅓ cup melted butter</label></li>
+        <li><label><input type="checkbox"> ¾ cup granulated sugar</label></li>
+        <li><label><input type="checkbox"> 1 large egg, beaten</label></li>
+        <li><label><input type="checkbox"> 1 tsp vanilla extract</label></li>
+        <li><label><input type="checkbox"> 1 tsp baking soda</label></li>
+        <li><label><input type="checkbox"> Pinch of salt</label></li>
+        <li><label><input type="checkbox"> 1 ½ cups all-purpose flour</label></li>
+        <li><label><input type="checkbox"> ½ cup chocolate chips</label></li>
+      </ul>
+    </section>
+
+    <!-- Instructions Section -->
+    <section>
+      <h2>Instructions</h2>
+      <ol class="instructions-list">
+        <li>Preheat your oven to 350°F (175°C) and line or grease a 12-cup muffin tin.</li>
+        <li>In a large mixing bowl, mash the ripe bananas with a fork until smooth.</li>
+        <li>Stir the melted butter into the mashed bananas.</li>
+        <li>Mix in the sugar, beaten egg, and vanilla extract until well combined.</li>
+        <li>Sprinkle the baking soda and salt over the mixture and stir in.</li>
+        <li>Gently fold in the flour until just combined (do not overmix). Fold in the chocolate chips.</li>
+        <li>Divide the batter evenly among the 12 muffin cups.</li>
+        <li>Bake for 18 to 22 minutes, or until a toothpick inserted into the center comes out clean.</li>
+        <li>Allow muffins to cool in the pan for 5 minutes, then transfer to a wire rack to cool completely.</li>
+      </ol>
+    </section>
+
+  </div>
+
+</body>
+</html>

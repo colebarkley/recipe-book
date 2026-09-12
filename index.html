@@ -7,6 +7,202 @@
   
   <!-- Link to external stylesheet -->
   <link rel="stylesheet" href="style.css">
+
+  <style>
+    /* Category Filter Buttons Styling */
+    .filter-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .filter-btn {
+      background-color: #ffffff;
+      border: 1px solid var(--border-color, #efebe9);
+      color: var(--text-color, #3e2723);
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .filter-btn:hover {
+      border-color: var(--primary-color, #c85a32);
+      color: var(--primary-color, #c85a32);
+    }
+
+    /* Active button state */
+    .filter-btn.active {
+      background-color: var(--primary-color, #c85a32);
+      border-color: var(--primary-color, #c85a32);
+      color: #ffffff;
+    }
+
+    /* Favorite Star Button Styling */
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .fav-btn {
+      background: none;
+      border: none;
+      font-size: 1.4rem;
+      cursor: pointer;
+      padding: 0 4px;
+      line-height: 1;
+      color: #9ca3af; /* Muted gray outline star by default */
+      transition: transform 0.15s ease, color 0.15s ease;
+    }
+
+    .fav-btn:hover {
+      transform: scale(1.2);
+      color: #f59e0b; /* Golden hover tint */
+    }
+
+    /* Filled Gold Star State */
+    .fav-btn.active {
+      color: #f59e0b; /* Bright Yellow/Gold */
+      text-shadow: 0 0 6px rgba(245, 158, 11, 0.4);
+    }
+  </style>
 </head>
 <body>
-  <!-- Body contents remain exactly the same -->
+
+  <div class="container">
+    <header>
+      <h1>Family Recipe Book</h1>
+      <p class="subtitle">Our collection of favorite family recipes</p>
+    </header>
+
+    <!-- Search Input -->
+    <input type="text" id="searchInput" class="search-box" placeholder="Search recipes or ingredients..." onkeyup="filterRecipes()">
+
+    <!-- Category Filter Buttons -->
+    <div class="filter-container" id="filterButtons">
+      <button class="filter-btn active" onclick="setCategory('all', this)">All</button>
+      <button class="filter-btn" onclick="setCategory('favorites', this)">★ Favorites</button>
+      <button class="filter-btn" onclick="setCategory('breakfast', this)">Breakfast</button>
+      <button class="filter-btn" onclick="setCategory('baking', this)">Baking</button>
+      <button class="filter-btn" onclick="setCategory('dinners', this)">Dinners</button>
+      <button class="filter-btn" onclick="setCategory('quick', this)">Quick & Easy</button>
+    </div>
+
+    <!-- Recipe Cards List -->
+    <div class="recipe-grid" id="recipeGrid">
+      
+      <!-- Recipe Entry 1 -->
+      <a href="banana-muffins.html" class="recipe-card" data-id="banana-muffins" data-tags="breakfast baking banana chocolate quick">
+        <div>
+          <div class="card-header">
+            <h2 class="recipe-title">Banana Chocolate Chip Muffins</h2>
+            <button class="fav-btn" onclick="toggleFavorite(event, 'banana-muffins')" title="Toggle Favorite">☆</button>
+          </div>
+          <div class="recipe-meta">Prep: 10m | Bake: 18–22m</div>
+        </div>
+        <div>
+          <span class="tag">Breakfast / Baking</span>
+        </div>
+      </a>
+
+      <!-- Add future recipe links below using the same structure -->
+
+    </div>
+  </div>
+
+  <script>
+    let activeCategory = 'all';
+
+    // Fetch favorites array from localStorage
+    function getFavorites() {
+      return JSON.parse(localStorage.getItem('favoriteRecipes') || '[]');
+    }
+
+    // Save or remove a recipe ID from favorites
+    function toggleFavorite(event, recipeId) {
+      event.preventDefault(); // Prevents clicking the star from navigating to the page
+      event.stopPropagation();
+
+      let favorites = getFavorites();
+      if (favorites.includes(recipeId)) {
+        favorites = favorites.filter(id => id !== recipeId);
+      } else {
+        favorites.push(recipeId);
+      }
+
+      localStorage.setItem('favoriteRecipes', JSON.stringify(favorites));
+      updateStarIcons();
+      filterRecipes();
+    }
+
+    // Update star icons and colors based on saved favorites
+    function updateStarIcons() {
+      const favorites = getFavorites();
+      const cards = document.getElementsByClassName('recipe-card');
+
+      for (let i = 0; i < cards.length; i++) {
+        const recipeId = cards[i].getAttribute('data-id');
+        const btn = cards[i].querySelector('.fav-btn');
+        if (btn) {
+          const isFav = favorites.includes(recipeId);
+          btn.innerText = isFav ? '★' : '☆';
+          if (isFav) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        }
+      }
+    }
+
+    function setCategory(category, buttonElement) {
+      activeCategory = category;
+
+      // Update button active highlight
+      const buttons = document.querySelectorAll('.filter-btn');
+      buttons.forEach(btn => btn.classList.remove('active'));
+      buttonElement.classList.add('active');
+
+      filterRecipes();
+    }
+
+    function filterRecipes() {
+      const searchText = document.getElementById('searchInput').value.toLowerCase();
+      const cards = document.getElementsByClassName('recipe-card');
+      const favorites = getFavorites();
+
+      for (let i = 0; i < cards.length; i++) {
+        const recipeId = cards[i].getAttribute('data-id');
+        const title = cards[i].querySelector('.recipe-title').innerText.toLowerCase();
+        const tags = cards[i].getAttribute('data-tags').toLowerCase();
+        
+        const matchesSearch = title.includes(searchText) || tags.includes(searchText);
+        
+        let matchesCategory = false;
+        if (activeCategory === 'all') {
+          matchesCategory = true;
+        } else if (activeCategory === 'favorites') {
+          matchesCategory = favorites.includes(recipeId);
+        } else {
+          matchesCategory = tags.includes(activeCategory);
+        }
+
+        if (matchesSearch && matchesCategory) {
+          cards[i].style.display = "flex";
+        } else {
+          cards[i].style.display = "none";
+        }
+      }
+    }
+
+    // Initialize star icons on load
+    document.addEventListener('DOMContentLoaded', updateStarIcons);
+  </script>
+
+</body>
+</html>

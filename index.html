@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Family Recipe Book</title>
+  <style>
+    :root {
+      --primary-color: #4e342e;
+      --accent-color: #8d6e63;
+      --bg-color: #faf6f0;
+      --card-bg: #ffffff;
+      --text-color: #3e2723;
+      --border-color: #efebe9;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Georgia, serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 2px dashed #d7ccc8;
+    }
+
+    h1 {
+      color: var(--primary-color);
+      margin-bottom: 5px;
+    }
+
+    .subtitle {
+      color: var(--accent-color);
+      font-style: italic;
+      margin-top: 0;
+    }
+
+    .search-box {
+      width: 100%;
+      padding: 12px 16px;
+      font-size: 16px;
+      border: 2px solid #d7ccc8;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-sizing: border-box;
+    }
+
+    .search-box:focus {
+      outline: none;
+      border-color: var(--accent-color);
+    }
+
+    .recipe-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 15px;
+    }
+
+    .recipe-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 18px;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .recipe-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .recipe-title {
+      font-weight: bold;
+      font-size: 1.1rem;
+      color: var(--primary-color);
+      margin: 0 0 8px 0;
+    }
+
+    .recipe-meta {
+      font-size: 0.85rem;
+      color: #795548;
+    }
+
+    .tag {
+      display: inline-block;
+      background: #efebe9;
+      color: #6d4c41;
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-top: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>Family Recipe Book</h1>
+      <p class="subtitle">Our collection of favorite family recipes</p>
+    </header>
+
+    <!-- Search Input -->
+    <input type="text" id="searchInput" class="search-box" placeholder="Search recipes or ingredients..." onkeyup="filterRecipes()">
+
+    <!-- Recipe Cards List -->
+    <div class="recipe-grid" id="recipeGrid">
+      
+      <!-- Recipe Entry 1 -->
+      <a href="banana-muffins.html" class="recipe-card" data-tags="breakfast baking banana chocolate">
+        <div>
+          <h2 class="recipe-title">Banana Chocolate Chip Muffins</h2>
+          <div class="recipe-meta">Prep: 10m | Bake: 18–22m</div>
+        </div>
+        <div>
+          <span class="tag">Breakfast / Baking</span>
+        </div>
+      </a>
+
+      <!-- Add future recipe links below using the same structure -->
+
+    </div>
+  </div>
+
+  <script>
+    function filterRecipes() {
+      const input = document.getElementById('searchInput').value.toLowerCase();
+      const cards = document.getElementsByClassName('recipe-card');
+
+      for (let i = 0; i < cards.length; i++) {
+        const title = cards[i].querySelector('.recipe-title').innerText.toLowerCase();
+        const tags = cards[i].getAttribute('data-tags').toLowerCase();
+        
+        if (title.includes(input) || tags.includes(input)) {
+          cards[i].style.display = "flex";
+        } else {
+          cards[i].style.display = "none";
+        }
+      }
+    }
+  </script>
+
+</body>
+</html>

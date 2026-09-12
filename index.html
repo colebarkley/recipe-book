@@ -335,7 +335,7 @@
     <!-- 3-Column Recipe Grid -->
     <div class="recipe-grid" id="recipeGrid">
       
-      <!-- Banana Muffins Card pointing to subfolder 'recipes/banana-muffins.html' -->
+      <!-- Recipe Card pointing dynamically to 'recipes/banana-muffins.html' -->
       <div class="recipe-card" data-id="banana-muffins" data-subfolder="recipes/banana-muffins.html" data-tags="breakfast baking banana chocolate quick" onclick="openRecipeModal('banana-muffins', 'recipes/banana-muffins.html')">
         <div>
           <div class="card-header">
@@ -371,40 +371,6 @@
     </div>
   </div>
 
-  <!-- Hidden Recipe Templates Store -->
-  <div id="recipeStore" style="display:none;">
-    <div id="template-banana-muffins">
-      <h2>Banana Chocolate Chip Muffins</h2>
-      <p style="color: #6b7280; font-style: italic;">Moist, bakery-style muffins perfect for using up ripe bananas.</p>
-      
-      <div style="background: #f0f4f2; padding: 10px 14px; border-radius: 8px; margin: 16px 0; font-size: 0.9rem;">
-        ⏱️ <strong>Prep:</strong> 10 mins | 🔥 <strong>Bake:</strong> 18–22 mins | 🧁 <strong>Yield:</strong> 12 muffins
-      </div>
-
-      <h3>Ingredients</h3>
-      <ul>
-        <li>3 ripe bananas, mashed</li>
-        <li>⅓ cup melted butter</li>
-        <li>¾ cup granulated sugar</li>
-        <li>1 large egg, beaten</li>
-        <li>1 tsp vanilla extract</li>
-        <li>1 tsp baking soda & pinch of salt</li>
-        <li>1 ½ cups all-purpose flour</li>
-        <li>½ cup chocolate chips</li>
-      </ul>
-
-      <h3>Instructions</h3>
-      <ol>
-        <li>Preheat oven to 350°F (175°C) and line a 12-cup muffin tin.</li>
-        <li>In a bowl, mash bananas with a fork and stir in melted butter.</li>
-        <li>Mix in sugar, egg, and vanilla extract.</li>
-        <li>Sprinkle baking soda and salt over mixture and stir in.</li>
-        <li>Gently fold in flour until combined, then fold in chocolate chips.</li>
-        <li>Divide batter into muffin cups and bake for 18–22 minutes.</li>
-      </ol>
-    </div>
-  </div>
-
   <script>
     let activeCategory = 'all';
     let currentRecipeTitle = 'Recipe';
@@ -414,7 +380,72 @@
       return JSON.parse(localStorage.getItem('importedRecipes') || '[]');
     }
 
-    // Recipe Web Importer using AllOrigins CORS proxy + JsonLD Parser
+    // Dynamic File Fetching for Recipe Subfolder Files
+    async function openRecipeModal(recipeId, filePath) {
+      const modalBody = document.getElementById('modalBody');
+      const standaloneLink = document.getElementById('standaloneLink');
+
+      // Check if it's an imported recipe saved in localStorage first
+      const imported = getImportedRecipes().find(r => r.id === recipeId);
+      if (imported) {
+        modalBody.innerHTML = imported.html;
+        currentRecipeTitle = imported.title;
+        standaloneLink.style.display = 'none';
+        document.getElementById('recipeModal').classList.add('open');
+        return;
+      }
+
+      // If it's a file in recipes/, fetch it dynamically
+      if (filePath) {
+        modalBody.innerHTML = '<p style="text-align:center; color:#6b7280;">Loading recipe...</p>';
+        document.getElementById('recipeModal').classList.add('open');
+
+        try {
+          const response = await fetch(filePath);
+          if (!response.ok) throw new Error('Recipe file not found');
+          
+          const text = await response.text();
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(text, 'text/html');
+
+          // Extract content inside .container or body
+          const container = doc.querySelector('.container') || doc.body;
+
+          // Remove back-link from modal view to avoid duplicate buttons
+          const backLink = container.querySelector('.back-link');
+          if (backLink) backLink.remove();
+
+          modalBody.innerHTML = container.innerHTML;
+
+          const h1 = modalBody.querySelector('h1, h2');
+          if (h1) currentRecipeTitle = h1.innerText;
+
+          standaloneLink.href = filePath;
+          standaloneLink.style.display = 'inline-block';
+
+        } catch (err) {
+          console.error(err);
+          modalBody.innerHTML = `<p style="color:#c85a32;">Unable to load recipe file at <code>${filePath}</code>. Ensure the file exists in your repository.</p>`;
+        }
+      }
+    }
+
+    function closeRecipeModal(event) {
+      if (event) event.stopPropagation();
+      document.getElementById('recipeModal').classList.remove('open');
+    }
+
+    // Save recipe as text file
+    function saveRecipeFile() {
+      const content = document.getElementById('modalBody').innerText;
+      const blob = new Blob([content], { type: 'text/plain' });
+      const anchor = document.createElement('a');
+      anchor.href = URL.createObjectURL(blob);
+      anchor.download = currentRecipeTitle.toLowerCase().replace(/\s+/g, '-') + '.txt';
+      anchor.click();
+    }
+
+    // Web Importer Logic
     async function importRecipeFromUrl() {
       const urlInput = document.getElementById('importUrlInput');
       const url = urlInput.value.trim();
@@ -498,15 +529,9 @@
     function loadImportedRecipes() {
       const imported = getImportedRecipes();
       const grid = document.getElementById('recipeGrid');
-      const store = document.getElementById('recipeStore');
 
       imported.forEach(recipe => {
         if (document.getElementById('card-' + recipe.id)) return;
-
-        const templateDiv = document.createElement('div');
-        templateDiv.id = 'template-' + recipe.id;
-        templateDiv.innerHTML = recipe.html;
-        store.appendChild(templateDiv);
 
         const cardDiv = document.createElement('div');
         cardDiv.className = 'recipe-card';
@@ -535,40 +560,6 @@
     // Toggle Collapsible Filter Panel
     function toggleSearchPanel() {
       document.getElementById('searchPanel').classList.toggle('open');
-    }
-
-    // Modal Control & Subfolder Link Mapping
-    function openRecipeModal(recipeId, subfolderPath) {
-      const template = document.getElementById('template-' + recipeId);
-      if (template) {
-        document.getElementById('modalBody').innerHTML = template.innerHTML;
-        currentRecipeTitle = template.querySelector('h2').innerText;
-        
-        const standaloneLink = document.getElementById('standaloneLink');
-        if (subfolderPath) {
-          standaloneLink.href = subfolderPath;
-          standaloneLink.style.display = 'inline-block';
-        } else {
-          standaloneLink.style.display = 'none';
-        }
-
-        document.getElementById('recipeModal').classList.add('open');
-      }
-    }
-
-    function closeRecipeModal(event) {
-      if (event) event.stopPropagation();
-      document.getElementById('recipeModal').classList.remove('open');
-    }
-
-    // Save recipe as text file
-    function saveRecipeFile() {
-      const content = document.getElementById('modalBody').innerText;
-      const blob = new Blob([content], { type: 'text/plain' });
-      const anchor = document.createElement('a');
-      anchor.href = URL.createObjectURL(blob);
-      anchor.download = currentRecipeTitle.toLowerCase().replace(/\s+/g, '-') + '.txt';
-      anchor.click();
     }
 
     // Favorites System

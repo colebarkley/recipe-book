@@ -5,43 +5,170 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Family Recipe Book</title>
   
-  <!-- Link to external stylesheet -->
   <link rel="stylesheet" href="style.css">
 
   <style>
-    /* Category Filter Buttons Styling */
+    /* Top Banner Layout */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 16px;
+      margin-bottom: 20px;
+      border-bottom: 2px dashed var(--border-color, #efebe9);
+    }
+
+    .header-titles h1 {
+      margin: 0 0 4px 0;
+      font-size: 1.8rem;
+      color: var(--primary-color, #c85a32);
+    }
+
+    .header-titles .subtitle {
+      margin: 0;
+      font-style: italic;
+      color: var(--text-muted, #6b7280);
+      font-size: 0.95rem;
+    }
+
+    /* Filter/Search Toggle Button */
+    .filter-toggle-btn {
+      background: #ffffff;
+      border: 1px solid var(--border-color, #efebe9);
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-color, #3e2723);
+      transition: all 0.2s ease;
+    }
+
+    .filter-toggle-btn:hover {
+      border-color: var(--primary-color, #c85a32);
+      color: var(--primary-color, #c85a32);
+    }
+
+    /* Collapsible Search & Import Panel */
+    .search-panel {
+      display: none;
+      background: #ffffff;
+      border: 1px solid var(--border-color, #efebe9);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .search-panel.open {
+      display: block;
+    }
+
+    .search-box {
+      width: 100%;
+      padding: 10px 14px;
+      font-size: 15px;
+      border: 1px solid var(--border-color, #efebe9);
+      border-radius: 8px;
+      margin-bottom: 12px;
+      box-sizing: border-box;
+    }
+
+    .search-box:focus {
+      outline: none;
+      border-color: var(--primary-color, #c85a32);
+    }
+
+    /* Import Box Styling */
+    .import-container {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px dashed var(--border-color, #efebe9);
+    }
+
+    .import-input {
+      flex: 1;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      border: 1px solid var(--border-color, #efebe9);
+      border-radius: 6px;
+    }
+
+    .import-btn {
+      background-color: var(--secondary-color, #4a6b5d);
+      color: #ffffff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .import-btn:hover {
+      opacity: 0.9;
+    }
+
     .filter-container {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      margin-bottom: 20px;
     }
 
     .filter-btn {
       background-color: #ffffff;
       border: 1px solid var(--border-color, #efebe9);
       color: var(--text-color, #3e2723);
-      padding: 8px 14px;
-      border-radius: 20px;
+      padding: 6px 12px;
+      border-radius: 16px;
       font-size: 0.85rem;
       font-weight: 500;
       cursor: pointer;
-      transition: all 0.2s ease;
     }
 
-    .filter-btn:hover {
-      border-color: var(--primary-color, #c85a32);
-      color: var(--primary-color, #c85a32);
-    }
-
-    /* Active button state */
     .filter-btn.active {
       background-color: var(--primary-color, #c85a32);
       border-color: var(--primary-color, #c85a32);
       color: #ffffff;
     }
 
-    /* Favorite Star Button Styling */
+    /* 3-Column Grid Layout */
+    .recipe-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .recipe-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 600px) {
+      .recipe-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Compact Recipe Card Blocks */
+    .recipe-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color, #efebe9);
+      border-radius: 10px;
+      padding: 16px;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .recipe-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+    }
+
     .card-header {
       display: flex;
       justify-content: space-between;
@@ -49,26 +176,97 @@
       gap: 8px;
     }
 
+    .recipe-title {
+      font-size: 1.05rem;
+      font-weight: bold;
+      color: var(--primary-color, #c85a32);
+      margin: 0 0 6px 0;
+    }
+
+    .recipe-meta {
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
+
     .fav-btn {
       background: none;
       border: none;
-      font-size: 1.4rem;
+      font-size: 1.3rem;
       cursor: pointer;
-      padding: 0 4px;
+      padding: 0;
       line-height: 1;
-      color: #9ca3af; /* Muted gray outline star by default */
-      transition: transform 0.15s ease, color 0.15s ease;
+      color: #9ca3af;
     }
 
-    .fav-btn:hover {
-      transform: scale(1.2);
-      color: #f59e0b; /* Golden hover tint */
-    }
-
-    /* Filled Gold Star State */
     .fav-btn.active {
-      color: #f59e0b; /* Bright Yellow/Gold */
-      text-shadow: 0 0 6px rgba(245, 158, 11, 0.4);
+      color: #f59e0b;
+    }
+
+    /* Full View Recipe Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #ffffff;
+      border-radius: 12px;
+      max-width: 700px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 28px;
+      position: relative;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    .close-modal-btn {
+      position: absolute;
+      top: 16px; right: 16px;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #6b7280;
+    }
+
+    .action-bar {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-color, #efebe9);
+    }
+
+    .action-btn {
+      flex: 1;
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--primary-color, #c85a32);
+      background: #ffffff;
+      color: var(--primary-color, #c85a32);
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .action-btn.primary {
+      background: var(--primary-color, #c85a32);
+      color: #ffffff;
     }
   </style>
 </head>
@@ -76,98 +274,305 @@
 
   <div class="container">
     <header>
-      <h1>Family Recipe Book</h1>
-      <p class="subtitle">Our collection of favorite family recipes</p>
+      <div class="header-titles">
+        <h1>Family Recipe Book</h1>
+        <p class="subtitle">Our collection of favorite family recipes</p>
+      </div>
+
+      <button class="filter-toggle-btn" onclick="toggleSearchPanel()" title="Search & Filter">
+        <span>🌪️ Filter / Import</span>
+      </button>
     </header>
 
-    <!-- Search Input -->
-    <input type="text" id="searchInput" class="search-box" placeholder="Search recipes or ingredients..." onkeyup="filterRecipes()">
+    <!-- Collapsible Search & Import Panel -->
+    <div class="search-panel" id="searchPanel">
+      
+      <!-- Import Recipe Bar -->
+      <div class="import-container">
+        <input type="url" id="importUrlInput" class="import-input" placeholder="Paste web recipe URL (e.g. foodnetwork.com, allrecipes)...">
+        <button class="import-btn" onclick="importRecipeFromUrl()">📥 Import</button>
+      </div>
 
-    <!-- Category Filter Buttons -->
-    <div class="filter-container" id="filterButtons">
-      <button class="filter-btn active" onclick="setCategory('all', this)">All</button>
-      <button class="filter-btn" onclick="setCategory('favorites', this)">★ Favorites</button>
-      <button class="filter-btn" onclick="setCategory('breakfast', this)">Breakfast</button>
-      <button class="filter-btn" onclick="setCategory('baking', this)">Baking</button>
-      <button class="filter-btn" onclick="setCategory('dinners', this)">Dinners</button>
-      <button class="filter-btn" onclick="setCategory('quick', this)">Quick & Easy</button>
+      <input type="text" id="searchInput" class="search-box" placeholder="Search recipes or ingredients..." onkeyup="filterRecipes()">
+      
+      <div class="filter-container" id="filterButtons">
+        <button class="filter-btn active" onclick="setCategory('all', this)">All</button>
+        <button class="filter-btn" onclick="setCategory('favorites', this)">★ Favorites</button>
+        <button class="filter-btn" onclick="setCategory('imported', this)">📥 Imported</button>
+        <button class="filter-btn" onclick="setCategory('breakfast', this)">Breakfast</button>
+        <button class="filter-btn" onclick="setCategory('baking', this)">Baking</button>
+        <button class="filter-btn" onclick="setCategory('dinners', this)">Dinners</button>
+      </div>
     </div>
 
-    <!-- Recipe Cards List -->
+    <!-- 3-Column Recipe Grid -->
     <div class="recipe-grid" id="recipeGrid">
       
-      <!-- Recipe Entry 1 -->
-      <a href="banana-muffins.html" class="recipe-card" data-id="banana-muffins" data-tags="breakfast baking banana chocolate quick">
+      <!-- Default Recipe Card 1 -->
+      <div class="recipe-card" data-id="banana-muffins" data-tags="breakfast baking banana chocolate quick" onclick="openRecipeModal('banana-muffins')">
         <div>
           <div class="card-header">
             <h2 class="recipe-title">Banana Chocolate Chip Muffins</h2>
             <button class="fav-btn" onclick="toggleFavorite(event, 'banana-muffins')" title="Toggle Favorite">☆</button>
           </div>
-          <div class="recipe-meta">Prep: 10m | Bake: 18–22m</div>
+          <div class="recipe-meta">Prep: 10m | Bake: 20m</div>
         </div>
         <div>
           <span class="tag">Breakfast / Baking</span>
         </div>
-      </a>
+      </div>
 
-      <!-- Add future recipe links below using the same structure -->
+    </div>
+  </div>
 
+  <!-- Full Recipe View Modal -->
+  <div class="modal-overlay" id="recipeModal" onclick="closeRecipeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <button class="close-modal-btn" onclick="closeRecipeModal(event)">&times;</button>
+      
+      <div id="modalBody"></div>
+
+      <div class="action-bar">
+        <button class="action-btn primary" onclick="window.print()">🖨️ Download as PDF / Print</button>
+        <button class="action-btn" onclick="saveRecipeFile()">💾 Save to Device (.txt)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden Recipe Templates Store -->
+  <div id="recipeStore" style="display:none;">
+    <div id="template-banana-muffins">
+      <h2>Banana Chocolate Chip Muffins</h2>
+      <p style="color: #6b7280; font-style: italic;">Moist, bakery-style muffins perfect for using up ripe bananas.</p>
+      
+      <div style="background: #f0f4f2; padding: 10px 14px; border-radius: 8px; margin: 16px 0; font-size: 0.9rem;">
+        ⏱️ <strong>Prep:</strong> 10 mins | 🔥 <strong>Bake:</strong> 18–22 mins | 🧁 <strong>Yield:</strong> 12 muffins
+      </div>
+
+      <h3>Ingredients</h3>
+      <ul>
+        <li>3 ripe bananas, mashed</li>
+        <li>⅓ cup melted butter</li>
+        <li>¾ cup granulated sugar</li>
+        <li>1 large egg, beaten</li>
+        <li>1 tsp vanilla extract</li>
+        <li>1 tsp baking soda & pinch of salt</li>
+        <li>1 ½ cups all-purpose flour</li>
+        <li>½ cup chocolate chips</li>
+      </ul>
+
+      <h3>Instructions</h3>
+      <ol>
+        <li>Preheat oven to 350°F (175°C) and line a 12-cup muffin tin.</li>
+        <li>In a bowl, mash bananas with a fork and stir in melted butter.</li>
+        <li>Mix in sugar, egg, and vanilla extract.</li>
+        <li>Sprinkle baking soda and salt over mixture and stir in.</li>
+        <li>Gently fold in flour until combined, then fold in chocolate chips.</li>
+        <li>Divide batter into muffin cups and bake for 18–22 minutes.</li>
+      </ol>
     </div>
   </div>
 
   <script>
     let activeCategory = 'all';
+    let currentRecipeTitle = 'Recipe';
 
-    // Fetch favorites array from localStorage
+    // Store for imported recipes in local storage
+    function getImportedRecipes() {
+      return JSON.parse(localStorage.getItem('importedRecipes') || '[]');
+    }
+
+    // Recipe Web Importer using AllOrigins CORS proxy + JsonLD Parser
+    async function importRecipeFromUrl() {
+      const urlInput = document.getElementById('importUrlInput');
+      const url = urlInput.value.trim();
+
+      if (!url) {
+        alert('Please enter a valid recipe URL.');
+        return;
+      }
+
+      try {
+        const btn = document.querySelector('.import-btn');
+        btn.innerText = 'Extracting...';
+
+        // Fetch web page content using free CORS proxy
+        const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+        const data = await response.json();
+        
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(data.contents, 'text/html');
+
+        // Search for JSON-LD structured recipe data
+        const scripts = doc.querySelectorAll('script[type="application/ld+json"]');
+        let recipeData = null;
+
+        scripts.forEach(script => {
+          try {
+            const parsed = JSON.parse(script.textContent);
+            const found = Array.isArray(parsed) ? parsed.find(item => item['@type'] === 'Recipe') : 
+                          (parsed['@type'] === 'Recipe' ? parsed : (parsed['@graph'] ? parsed['@graph'].find(item => item['@type'] === 'Recipe') : null));
+            if (found) recipeData = found;
+          } catch(e){}
+        });
+
+        if (!recipeData) {
+          alert('Could not find structured recipe data on that page. Try a major recipe website like Food Network, Allrecipes, or Epicurious.');
+          btn.innerText = '📥 Import';
+          return;
+        }
+
+        // Generate clean ID & structure
+        const id = 'imported-' + Date.now();
+        const title = recipeData.name || 'Imported Recipe';
+        const description = recipeData.description || 'Imported from ' + url;
+        const ingredients = (recipeData.recipeIngredient || []).map(i => `<li>${i}</li>`).join('');
+        
+        let instructions = '';
+        if (Array.isArray(recipeData.recipeInstructions)) {
+          instructions = recipeData.recipeInstructions.map(step => `<li>${step.text || step}</li>`).join('');
+        } else if (typeof recipeData.recipeInstructions === 'string') {
+          instructions = `<li>${recipeData.recipeInstructions}</li>`;
+        }
+
+        const newRecipe = {
+          id: id,
+          title: title,
+          tags: 'imported custom ' + title.toLowerCase(),
+          html: `
+            <h2>${title}</h2>
+            <p style="color: #6b7280; font-style: italic;">${description}</p>
+            <h3>Ingredients</h3>
+            <ul>${ingredients}</ul>
+            <h3>Instructions</h3>
+            <ol>${instructions}</ol>
+            <p><a href="${url}" target="_blank" style="color: var(--primary-color);">Source Link</a></p>
+          `
+        };
+
+        // Save locally
+        const imported = getImportedRecipes();
+        imported.push(newRecipe);
+        localStorage.setItem('importedRecipes', JSON.stringify(imported));
+
+        // Reset UI & render
+        urlInput.value = '';
+        btn.innerText = '📥 Import';
+        loadImportedRecipes();
+        alert(`Successfully imported "${title}"!`);
+
+      } catch (err) {
+        console.error(err);
+        alert('Failed to import recipe. Make sure the site is accessible.');
+        document.querySelector('.import-btn').innerText = '📥 Import';
+      }
+    }
+
+    // Render imported recipes into the grid and template store
+    function loadImportedRecipes() {
+      const imported = getImportedRecipes();
+      const grid = document.getElementById('recipeGrid');
+      const store = document.getElementById('recipeStore');
+
+      imported.forEach(recipe => {
+        // Skip if already in DOM
+        if (document.getElementById('card-' + recipe.id)) return;
+
+        // Add template HTML
+        const templateDiv = document.createElement('div');
+        templateDiv.id = 'template-' + recipe.id;
+        templateDiv.innerHTML = recipe.html;
+        store.appendChild(templateDiv);
+
+        // Add Grid Card
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'recipe-card';
+        cardDiv.id = 'card-' + recipe.id;
+        cardDiv.setAttribute('data-id', recipe.id);
+        cardDiv.setAttribute('data-tags', recipe.tags);
+        cardDiv.onclick = () => openRecipeModal(recipe.id);
+
+        cardDiv.innerHTML = `
+          <div>
+            <div class="card-header">
+              <h2 class="recipe-title">${recipe.title}</h2>
+              <button class="fav-btn" onclick="toggleFavorite(event, '${recipe.id}')">☆</button>
+            </div>
+            <div class="recipe-meta">Imported Web Recipe</div>
+          </div>
+          <div><span class="tag">Imported</span></div>
+        `;
+        grid.appendChild(cardDiv);
+      });
+
+      updateStarIcons();
+      filterRecipes();
+    }
+
+    // Panel & Modal logic
+    function toggleSearchPanel() {
+      document.getElementById('searchPanel').classList.toggle('open');
+    }
+
+    function openRecipeModal(recipeId) {
+      const template = document.getElementById('template-' + recipeId);
+      if (template) {
+        document.getElementById('modalBody').innerHTML = template.innerHTML;
+        currentRecipeTitle = template.querySelector('h2').innerText;
+        document.getElementById('recipeModal').classList.add('open');
+      }
+    }
+
+    function closeRecipeModal(event) {
+      document.getElementById('recipeModal').classList.remove('open');
+    }
+
+    function saveRecipeFile() {
+      const content = document.getElementById('modalBody').innerText;
+      const blob = new Blob([content], { type: 'text/plain' });
+      const anchor = document.createElement('a');
+      anchor.href = URL.createObjectURL(blob);
+      anchor.download = currentRecipeTitle.toLowerCase().replace(/\s+/g, '-') + '.txt';
+      anchor.click();
+    }
+
+    // Favorites Logic
     function getFavorites() {
       return JSON.parse(localStorage.getItem('favoriteRecipes') || '[]');
     }
 
-    // Save or remove a recipe ID from favorites
     function toggleFavorite(event, recipeId) {
-      event.preventDefault(); // Prevents clicking the star from navigating to the page
+      event.preventDefault();
       event.stopPropagation();
-
       let favorites = getFavorites();
       if (favorites.includes(recipeId)) {
         favorites = favorites.filter(id => id !== recipeId);
       } else {
         favorites.push(recipeId);
       }
-
       localStorage.setItem('favoriteRecipes', JSON.stringify(favorites));
       updateStarIcons();
       filterRecipes();
     }
 
-    // Update star icons and colors based on saved favorites
     function updateStarIcons() {
       const favorites = getFavorites();
       const cards = document.getElementsByClassName('recipe-card');
-
       for (let i = 0; i < cards.length; i++) {
         const recipeId = cards[i].getAttribute('data-id');
         const btn = cards[i].querySelector('.fav-btn');
         if (btn) {
           const isFav = favorites.includes(recipeId);
           btn.innerText = isFav ? '★' : '☆';
-          if (isFav) {
-            btn.classList.add('active');
-          } else {
-            btn.classList.remove('active');
-          }
+          btn.className = isFav ? 'fav-btn active' : 'fav-btn';
         }
       }
     }
 
     function setCategory(category, buttonElement) {
       activeCategory = category;
-
-      // Update button active highlight
-      const buttons = document.querySelectorAll('.filter-btn');
-      buttons.forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
       buttonElement.classList.add('active');
-
       filterRecipes();
     }
 
@@ -182,26 +587,17 @@
         const tags = cards[i].getAttribute('data-tags').toLowerCase();
         
         const matchesSearch = title.includes(searchText) || tags.includes(searchText);
-        
-        let matchesCategory = false;
-        if (activeCategory === 'all') {
-          matchesCategory = true;
-        } else if (activeCategory === 'favorites') {
-          matchesCategory = favorites.includes(recipeId);
-        } else {
-          matchesCategory = tags.includes(activeCategory);
-        }
+        let matchesCategory = (activeCategory === 'all') || 
+                              (activeCategory === 'favorites' && favorites.includes(recipeId)) || 
+                              tags.includes(activeCategory);
 
-        if (matchesSearch && matchesCategory) {
-          cards[i].style.display = "flex";
-        } else {
-          cards[i].style.display = "none";
-        }
+        cards[i].style.display = (matchesSearch && matchesCategory) ? "flex" : "none";
       }
     }
 
-    // Initialize star icons on load
-    document.addEventListener('DOMContentLoaded', updateStarIcons);
+    document.addEventListener('DOMContentLoaded', () => {
+      loadImportedRecipes();
+    });
   </script>
 
 </body>

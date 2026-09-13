@@ -335,8 +335,8 @@
     <!-- 3-Column Recipe Grid -->
     <div class="recipe-grid" id="recipeGrid">
       
-      <!-- Recipe Card pointing dynamically to './recipes/chocolate-chip-banana-muffins.html' -->
-      <div class="recipe-card" data-id="chocolate-chip-banana-muffins" data-subfolder="./recipes/chocolate-chip-banana-muffins.html" data-tags="breakfast baking banana chocolate quick" onclick="openRecipeModal('chocolate-chip-banana-muffins', './recipes/chocolate-chip-banana-muffins.html')">
+      <!-- Recipe Card pointing dynamically to 'recipes/chocolate-chip-banana-muffins.html' -->
+      <div class="recipe-card" data-id="chocolate-chip-banana-muffins" data-subfolder="recipes/chocolate-chip-banana-muffins.html" data-tags="breakfast baking banana chocolate quick" onclick="openRecipeModal('chocolate-chip-banana-muffins', 'recipes/chocolate-chip-banana-muffins.html')">
         <div>
           <div class="card-header">
             <h2 class="recipe-title">Chocolate Chip Banana Muffins</h2>
@@ -371,7 +371,7 @@
     </div>
   </div>
 
-  <!-- Hidden Recipe Templates Backup Store (Loaded instantly if fetch fails) -->
+  <!-- Hidden Recipe Templates Backup Store -->
   <div id="recipeStore" style="display:none;">
     <div id="template-chocolate-chip-banana-muffins">
       <h2>Chocolate Chip Banana Muffins</h2>
@@ -418,6 +418,14 @@
       const modalBody = document.getElementById('modalBody');
       const standaloneLink = document.getElementById('standaloneLink');
 
+      // Set direct link target for standalone page view
+      if (filePath) {
+        standaloneLink.href = filePath;
+        standaloneLink.style.display = 'inline-block';
+      } else {
+        standaloneLink.style.display = 'none';
+      }
+
       // 1. Check imported recipes in localStorage
       const imported = getImportedRecipes().find(r => r.id === recipeId);
       if (imported) {
@@ -446,8 +454,6 @@
           const h1 = modalBody.querySelector('h1, h2');
           if (h1) currentRecipeTitle = h1.innerText;
 
-          standaloneLink.href = filePath;
-          standaloneLink.style.display = 'inline-block';
           document.getElementById('recipeModal').classList.add('open');
           return;
         } catch (err) {
@@ -460,12 +466,6 @@
       if (localTemplate) {
         modalBody.innerHTML = localTemplate.innerHTML;
         currentRecipeTitle = localTemplate.querySelector('h2, h1')?.innerText || 'Recipe';
-        if (filePath) {
-          standaloneLink.href = filePath;
-          standaloneLink.style.display = 'inline-block';
-        } else {
-          standaloneLink.style.display = 'none';
-        }
         document.getElementById('recipeModal').classList.add('open');
       } else {
         modalBody.innerHTML = `<p style="color:#c85a32;">Unable to load recipe content.</p>`;

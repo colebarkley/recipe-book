@@ -5,12 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chocolate Chip Banana Muffins - Family Recipe Book</title>
   
-  <!-- Links to your central stylesheet -->
-  <link rel="stylesheet" href="style.css">
-  <!-- If this file is saved inside a 'recipes/' subfolder, use: href="../style.css" -->
+  <!-- Link up one folder level to central stylesheet -->
+  <link rel="stylesheet" href="../style.css">
 
   <style>
-    /* Specific styles for individual recipe pages */
     .back-link {
       display: inline-block;
       margin-bottom: 20px;
@@ -42,7 +40,6 @@
       margin-top: 12px;
     }
 
-    /* Clickable Checkboxes for Ingredients */
     .checklist {
       list-style: none;
       padding-left: 0;
@@ -64,7 +61,6 @@
       cursor: pointer;
     }
 
-    /* Strikethrough completed directions */
     .instructions-list {
       padding-left: 20px;
     }
@@ -84,11 +80,9 @@
 
   <div class="container">
     
-    <!-- Top Navigation -->
-    <a href="index.html" class="back-link">&larr; Back to all recipes</a>
-    <!-- Use href="../index.html" if this file is placed inside a recipes/ subfolder -->
+    <!-- Top Navigation (points up to root index.html) -->
+    <a href="../index.html" class="back-link">&larr; Back to all recipes</a>
 
-    <!-- Recipe Header -->
     <header class="recipe-header">
       <h1>Chocolate Chip Banana Muffins</h1>
       <p class="subtitle">Moist, bakery-style muffins perfect for using up ripe bananas.</p>
@@ -100,7 +94,6 @@
       </div>
     </header>
 
-    <!-- Ingredients Section -->
     <section>
       <h2>Ingredients</h2>
       <ul class="checklist">
@@ -116,7 +109,6 @@
       </ul>
     </section>
 
-    <!-- Instructions Section -->
     <section>
       <h2>Instructions</h2>
       <ol class="instructions-list">

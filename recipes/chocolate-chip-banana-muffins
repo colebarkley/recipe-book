@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Banana Chocolate Chip Muffins - Family Recipe Book</title>
+  <title>Chocolate Chip Banana Muffins - Family Recipe Book</title>
   
   <!-- Links to your central stylesheet -->
   <link rel="stylesheet" href="style.css">
@@ -90,7 +90,7 @@
 
     <!-- Recipe Header -->
     <header class="recipe-header">
-      <h1>Banana Chocolate Chip Muffins</h1>
+      <h1>Chocolate Chip Banana Muffins</h1>
       <p class="subtitle">Moist, bakery-style muffins perfect for using up ripe bananas.</p>
       
       <div class="recipe-meta-bar">

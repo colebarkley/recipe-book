@@ -335,8 +335,8 @@
     <!-- 3-Column Recipe Grid -->
     <div class="recipe-grid" id="recipeGrid">
       
-      <!-- Recipe Card pointing dynamically to 'recipes/chocolate-chip-banana-muffins.html' -->
-      <div class="recipe-card" data-id="chocolate-chip-banana-muffins" data-subfolder="recipes/chocolate-chip-banana-muffins.html" data-tags="breakfast baking banana chocolate quick" onclick="openRecipeModal('chocolate-chip-banana-muffins', 'recipes/chocolate-chip-banana-muffins.html')">
+      <!-- Recipe Card pointing dynamically to './recipes/chocolate-chip-banana-muffins.html' -->
+      <div class="recipe-card" data-id="chocolate-chip-banana-muffins" data-subfolder="./recipes/chocolate-chip-banana-muffins.html" data-tags="breakfast baking banana chocolate quick" onclick="openRecipeModal('chocolate-chip-banana-muffins', './recipes/chocolate-chip-banana-muffins.html')">
         <div>
           <div class="card-header">
             <h2 class="recipe-title">Chocolate Chip Banana Muffins</h2>
@@ -371,21 +371,54 @@
     </div>
   </div>
 
+  <!-- Hidden Recipe Templates Backup Store (Loaded instantly if fetch fails) -->
+  <div id="recipeStore" style="display:none;">
+    <div id="template-chocolate-chip-banana-muffins">
+      <h2>Chocolate Chip Banana Muffins</h2>
+      <p style="color: #6b7280; font-style: italic;">Moist, bakery-style muffins perfect for using up ripe bananas.</p>
+      
+      <div style="background: #f0f4f2; padding: 10px 14px; border-radius: 8px; margin: 16px 0; font-size: 0.9rem; color: #4a6b5d;">
+        ⏱️ <strong>Prep:</strong> 10 mins | 🔥 <strong>Bake:</strong> 18–22 mins | 🧁 <strong>Yield:</strong> 12 muffins
+      </div>
+
+      <h3>Ingredients</h3>
+      <ul>
+        <li>3 ripe bananas, mashed</li>
+        <li>⅓ cup melted butter</li>
+        <li>¾ cup granulated sugar</li>
+        <li>1 large egg, beaten</li>
+        <li>1 tsp vanilla extract</li>
+        <li>1 tsp baking soda & pinch of salt</li>
+        <li>1 ½ cups all-purpose flour</li>
+        <li>½ cup chocolate chips</li>
+      </ul>
+
+      <h3>Instructions</h3>
+      <ol>
+        <li>Preheat oven to 350°F (175°C) and line a 12-cup muffin tin.</li>
+        <li>In a bowl, mash bananas with a fork and stir in melted butter.</li>
+        <li>Mix in sugar, egg, and vanilla extract.</li>
+        <li>Sprinkle baking soda and salt over mixture and stir in.</li>
+        <li>Gently fold in flour until combined, then fold in chocolate chips.</li>
+        <li>Divide batter into muffin cups and bake for 18–22 minutes.</li>
+      </ol>
+    </div>
+  </div>
+
   <script>
     let activeCategory = 'all';
     let currentRecipeTitle = 'Recipe';
 
-    // Store for imported recipes in local storage
     function getImportedRecipes() {
       return JSON.parse(localStorage.getItem('importedRecipes') || '[]');
     }
 
-    // Dynamic File Fetching for Recipe Subfolder Files
+    // Modal Loader with Multi-Tier Fallback
     async function openRecipeModal(recipeId, filePath) {
       const modalBody = document.getElementById('modalBody');
       const standaloneLink = document.getElementById('standaloneLink');
 
-      // Check if it's an imported recipe saved in localStorage first
+      // 1. Check imported recipes in localStorage
       const imported = getImportedRecipes().find(r => r.id === recipeId);
       if (imported) {
         modalBody.innerHTML = imported.html;
@@ -395,38 +428,48 @@
         return;
       }
 
-      // If it's a file in recipes/, fetch it dynamically
+      // 2. Try fetching the file dynamically from subfolder
       if (filePath) {
-        modalBody.innerHTML = '<p style="text-align:center; color:#6b7280;">Loading recipe...</p>';
-        document.getElementById('recipeModal').classList.add('open');
-
         try {
           const response = await fetch(filePath);
-          if (!response.ok) throw new Error('Recipe file not found');
+          if (!response.ok) throw new Error('File not found');
           
           const text = await response.text();
           const parser = new DOMParser();
           const doc = parser.parseFromString(text, 'text/html');
 
-          // Extract content inside .container or body
           const container = doc.querySelector('.container') || doc.body;
-
-          // Remove back-link from modal view to avoid duplicate buttons
           const backLink = container.querySelector('.back-link');
           if (backLink) backLink.remove();
 
           modalBody.innerHTML = container.innerHTML;
-
           const h1 = modalBody.querySelector('h1, h2');
           if (h1) currentRecipeTitle = h1.innerText;
 
           standaloneLink.href = filePath;
           standaloneLink.style.display = 'inline-block';
-
+          document.getElementById('recipeModal').classList.add('open');
+          return;
         } catch (err) {
-          console.error(err);
-          modalBody.innerHTML = `<p style="color:#c85a32;">Unable to load recipe file at <code>${filePath}</code>. Ensure the file exists in your repository.</p>`;
+          console.warn('Fetch failed, falling back to embedded template:', err);
         }
+      }
+
+      // 3. Fallback to embedded template if fetch fails
+      const localTemplate = document.getElementById('template-' + recipeId);
+      if (localTemplate) {
+        modalBody.innerHTML = localTemplate.innerHTML;
+        currentRecipeTitle = localTemplate.querySelector('h2, h1')?.innerText || 'Recipe';
+        if (filePath) {
+          standaloneLink.href = filePath;
+          standaloneLink.style.display = 'inline-block';
+        } else {
+          standaloneLink.style.display = 'none';
+        }
+        document.getElementById('recipeModal').classList.add('open');
+      } else {
+        modalBody.innerHTML = `<p style="color:#c85a32;">Unable to load recipe content.</p>`;
+        document.getElementById('recipeModal').classList.add('open');
       }
     }
 
@@ -435,7 +478,6 @@
       document.getElementById('recipeModal').classList.remove('open');
     }
 
-    // Save recipe as text file
     function saveRecipeFile() {
       const content = document.getElementById('modalBody').innerText;
       const blob = new Blob([content], { type: 'text/plain' });
@@ -557,12 +599,10 @@
       filterRecipes();
     }
 
-    // Toggle Collapsible Filter Panel
     function toggleSearchPanel() {
       document.getElementById('searchPanel').classList.toggle('open');
     }
 
-    // Favorites System
     function getFavorites() {
       return JSON.parse(localStorage.getItem('favoriteRecipes') || '[]');
     }

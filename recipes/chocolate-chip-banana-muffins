@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chocolate Chip Banana Muffins - Family Recipe Book</title>
+
+  <!-- CATEGORY & FILTER TAGS FOR DYNAMIC HOMEPAGE AUTO-DISCOVERY -->
+  <meta name="keywords" content="breakfast, baking, quick, banana, chocolate, muffins, snack">
+  <meta name="recipeCategory" content="Breakfast / Baking">
   
   <!-- Link up one folder level to central stylesheet -->
   <link rel="stylesheet" href="../style.css">
@@ -78,40 +82,40 @@
 </head>
 <body>
 
-  <div class="container">
+  <div class="container" itemscope itemtype="https://schema.org/Recipe">
     
-    <!-- Top Navigation (points up to root index.html) -->
+    <!-- Top Navigation -->
     <a href="../index.html" class="back-link">&larr; Back to all recipes</a>
 
     <header class="recipe-header">
-      <h1>Chocolate Chip Banana Muffins</h1>
-      <p class="subtitle">Moist, bakery-style muffins perfect for using up ripe bananas.</p>
+      <h1 itemprop="name">Chocolate Chip Banana Muffins</h1>
+      <p class="subtitle" itemprop="description">Moist, bakery-style muffins perfect for using up ripe bananas.</p>
       
       <div class="recipe-meta-bar">
-        <span>⏱️ <strong>Prep:</strong> 10 mins</span>
-        <span>🔥 <strong>Bake:</strong> 18–22 mins</span>
-        <span>🧁 <strong>Yield:</strong> 12 muffins</span>
+        <span>⏱️ <strong>Prep:</strong> <time itemprop="prepTime" datetime="PT10M">10 mins</time></span>
+        <span>🔥 <strong>Bake:</strong> <time itemprop="cookTime" datetime="PT20M">18–22 mins</time></span>
+        <span>🧁 <strong>Yield:</strong> <span itemprop="recipeYield">12 muffins</span></span>
       </div>
     </header>
 
     <section>
       <h2>Ingredients</h2>
       <ul class="checklist">
-        <li><label><input type="checkbox"> 3 ripe bananas, mashed</label></li>
-        <li><label><input type="checkbox"> ⅓ cup melted butter</label></li>
-        <li><label><input type="checkbox"> ¾ cup granulated sugar</label></li>
-        <li><label><input type="checkbox"> 1 large egg, beaten</label></li>
-        <li><label><input type="checkbox"> 1 tsp vanilla extract</label></li>
-        <li><label><input type="checkbox"> 1 tsp baking soda</label></li>
-        <li><label><input type="checkbox"> Pinch of salt</label></li>
-        <li><label><input type="checkbox"> 1 ½ cups all-purpose flour</label></li>
-        <li><label><input type="checkbox"> ½ cup chocolate chips</label></li>
+        <li itemprop="recipeIngredient"><label><input type="checkbox"> 3 ripe bananas, mashed</label></li>
+        <li itemprop="recipeIngredient"><label><input type="checkbox"> ⅓ cup melted butter</label></li>
+        <li itemprop="recipeIngredient"><label><input type="checkbox"> ¾ cup granulated sugar</label></li>
+        <li itemprop="recipeIngredient"><label><input type="checkbox"> 1 large egg, beaten</label></li>
+        <li itemprop="recipeIngredient"><label><input type="checkbox"> 1 tsp vanilla extract</label></li>
+        <li itemprop="recipeIngredient"><label><input type="checkbox"> 1 tsp baking soda</label></li>
+        <li itemprop="recipeIngredient"><label><input type="checkbox"> Pinch of salt</label></li>
+        <li itemprop="recipeIngredient"><label><input type="checkbox"> 1 ½ cups all-purpose flour</label></li>
+        <li itemprop="recipeIngredient"><label><input type="checkbox"> ½ cup chocolate chips</label></li>
       </ul>
     </section>
 
     <section>
       <h2>Instructions</h2>
-      <ol class="instructions-list">
+      <ol class="instructions-list" itemprop="recipeInstructions">
         <li>Preheat your oven to 350°F (175°C) and line or grease a 12-cup muffin tin.</li>
         <li>In a large mixing bowl, mash the ripe bananas with a fork until smooth.</li>
         <li>Stir the melted butter into the mashed bananas.</li>

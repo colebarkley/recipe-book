@@ -328,6 +328,7 @@
         <button class="filter-btn" onclick="setCategory('imported', this)">📥 Imported</button>
         <button class="filter-btn" onclick="setCategory('breakfast', this)">Breakfast</button>
         <button class="filter-btn" onclick="setCategory('baking', this)">Baking</button>
+        <button class="filter-btn" onclick="setCategory('snack', this)">Snack</button>
         <button class="filter-btn" onclick="setCategory('dinners', this)">Dinners</button>
       </div>
     </div>
@@ -356,7 +357,7 @@
   </div>
 
   <script>
-    // CONFIGURATION: Set your repository owner and repo name
+    // CONFIGURATION: Repository details
     const GITHUB_USERNAME = 'colebarkley';
     const GITHUB_REPO = 'recipe-book';
 
@@ -380,10 +381,8 @@
           return;
         }
 
-        // Remove loading message
         document.getElementById('loadingMsg')?.remove();
 
-        // Process each recipe HTML file found in recipes/
         for (const file of htmlFiles) {
           const filePath = `recipes/${file.name}`;
           const recipeId = file.name.replace('.html', '');
@@ -395,10 +394,12 @@
             const parser = new DOMParser();
             const doc = parser.parseFromString(pageText, 'text/html');
 
-            // Extract title and meta information from the HTML file
             const title = doc.querySelector('h1')?.innerText || recipeId.replace(/-/g, ' ');
-            const metaBar = doc.querySelector('.recipe-meta-bar, .recipe-meta')?.innerText || 'Family Recipe';
-            const tags = (title + ' ' + file.name).toLowerCase();
+            const metaBar = doc.querySelector('.recipe-meta-bar, .meta-info')?.innerText.replace(/\s+/g, ' ').trim() || 'Family Recipe';
+
+            // Extract keywords meta tag for category filtering
+            const metaKeywords = doc.querySelector('meta[name="keywords"]')?.getAttribute('content') || '';
+            const tags = (title + ' ' + file.name + ' ' + metaKeywords).toLowerCase();
 
             createCardElement({
               id: recipeId,
@@ -418,15 +419,17 @@
 
       } catch (err) {
         console.warn('GitHub API listing failed or limit reached. Loading fallback...', err);
-        // Fallback card if API limit is hit or running locally
         document.getElementById('loadingMsg')?.remove();
+        
+        // Fallback recipe card
         createCardElement({
           id: 'chocolate-chip-banana-muffins',
           title: 'Chocolate Chip Banana Muffins',
           meta: 'Prep: 10m | Bake: 20m',
-          tags: 'breakfast baking banana chocolate quick',
+          tags: 'breakfast baking banana chocolate quick snack',
           path: 'recipes/chocolate-chip-banana-muffins.html'
         });
+        
         loadImportedRecipes();
         updateStarIcons();
         filterRecipes();

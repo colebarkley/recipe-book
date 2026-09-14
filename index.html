@@ -332,31 +332,15 @@
       </div>
     </div>
 
-    <!-- 3-Column Recipe Grid -->
+    <!-- Dynamic Recipe Grid -->
     <div class="recipe-grid" id="recipeGrid">
-      
-      <!-- Recipe Card pointing dynamically to 'recipes/chocolate-chip-banana-muffins.html' -->
-      <div class="recipe-card" data-id="chocolate-chip-banana-muffins" data-subfolder="recipes/chocolate-chip-banana-muffins.html" data-tags="breakfast baking banana chocolate quick" onclick="openRecipeModal('chocolate-chip-banana-muffins', 'recipes/chocolate-chip-banana-muffins.html')">
-        <div>
-          <div class="card-header">
-            <h2 class="recipe-title">Chocolate Chip Banana Muffins</h2>
-            <button class="fav-btn" onclick="toggleFavorite(event, 'chocolate-chip-banana-muffins')" title="Toggle Favorite">☆</button>
-          </div>
-          <div class="recipe-meta">Prep: 10m | Bake: 20m</div>
-        </div>
-        <div>
-          <span class="tag">Breakfast / Baking</span>
-        </div>
-      </div>
-
+      <p id="loadingMsg" style="grid-column: 1/-1; text-align: center; color: #6b7280;">Loading recipes...</p>
     </div>
   </div>
 
   <!-- Full Recipe View Modal -->
   <div class="modal-overlay" id="recipeModal" onclick="closeRecipeModal(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
-      
-      <!-- Modal Navigation Bar -->
       <div class="modal-nav-bar">
         <button class="back-btn" onclick="closeRecipeModal(event)">&larr; Back to all recipes</button>
         <a id="standaloneLink" href="#" class="standalone-link" target="_blank">Open Full Page ↗</a>
@@ -371,54 +355,116 @@
     </div>
   </div>
 
-  <!-- Hidden Recipe Templates Backup Store -->
-  <div id="recipeStore" style="display:none;">
-    <div id="template-chocolate-chip-banana-muffins">
-      <h2>Chocolate Chip Banana Muffins</h2>
-      <p style="color: #6b7280; font-style: italic;">Moist, bakery-style muffins perfect for using up ripe bananas.</p>
-      
-      <div style="background: #f0f4f2; padding: 10px 14px; border-radius: 8px; margin: 16px 0; font-size: 0.9rem; color: #4a6b5d;">
-        ⏱️ <strong>Prep:</strong> 10 mins | 🔥 <strong>Bake:</strong> 18–22 mins | 🧁 <strong>Yield:</strong> 12 muffins
-      </div>
-
-      <h3>Ingredients</h3>
-      <ul>
-        <li>3 ripe bananas, mashed</li>
-        <li>⅓ cup melted butter</li>
-        <li>¾ cup granulated sugar</li>
-        <li>1 large egg, beaten</li>
-        <li>1 tsp vanilla extract</li>
-        <li>1 tsp baking soda & pinch of salt</li>
-        <li>1 ½ cups all-purpose flour</li>
-        <li>½ cup chocolate chips</li>
-      </ul>
-
-      <h3>Instructions</h3>
-      <ol>
-        <li>Preheat oven to 350°F (175°C) and line a 12-cup muffin tin.</li>
-        <li>In a bowl, mash bananas with a fork and stir in melted butter.</li>
-        <li>Mix in sugar, egg, and vanilla extract.</li>
-        <li>Sprinkle baking soda and salt over mixture and stir in.</li>
-        <li>Gently fold in flour until combined, then fold in chocolate chips.</li>
-        <li>Divide batter into muffin cups and bake for 18–22 minutes.</li>
-      </ol>
-    </div>
-  </div>
-
   <script>
+    // CONFIGURATION: Set your repository owner and repo name
+    const GITHUB_USERNAME = 'colebarkley';
+    const GITHUB_REPO = 'recipe-book';
+
     let activeCategory = 'all';
     let currentRecipeTitle = 'Recipe';
 
-    function getImportedRecipes() {
-      return JSON.parse(localStorage.getItem('importedRecipes') || '[]');
+    // Auto-discover and fetch all files inside the recipes/ folder via GitHub API
+    async function loadRecipesFromSubfolder() {
+      const grid = document.getElementById('recipeGrid');
+      const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/recipes`;
+
+      try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error('Could not fetch directory listing');
+
+        const files = await response.json();
+        const htmlFiles = files.filter(file => file.name.endsWith('.html'));
+
+        if (htmlFiles.length === 0) {
+          document.getElementById('loadingMsg').innerText = 'No recipes found in recipes/ subfolder.';
+          return;
+        }
+
+        // Remove loading message
+        document.getElementById('loadingMsg')?.remove();
+
+        // Process each recipe HTML file found in recipes/
+        for (const file of htmlFiles) {
+          const filePath = `recipes/${file.name}`;
+          const recipeId = file.name.replace('.html', '');
+
+          try {
+            const pageRes = await fetch(filePath);
+            const pageText = await pageRes.text();
+            
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(pageText, 'text/html');
+
+            // Extract title and meta information from the HTML file
+            const title = doc.querySelector('h1')?.innerText || recipeId.replace(/-/g, ' ');
+            const metaBar = doc.querySelector('.recipe-meta-bar, .recipe-meta')?.innerText || 'Family Recipe';
+            const tags = (title + ' ' + file.name).toLowerCase();
+
+            createCardElement({
+              id: recipeId,
+              title: title,
+              meta: metaBar,
+              tags: tags,
+              path: filePath
+            });
+          } catch (e) {
+            console.error(`Failed to load ${file.name}:`, e);
+          }
+        }
+
+        loadImportedRecipes();
+        updateStarIcons();
+        filterRecipes();
+
+      } catch (err) {
+        console.warn('GitHub API listing failed or limit reached. Loading fallback...', err);
+        // Fallback card if API limit is hit or running locally
+        document.getElementById('loadingMsg')?.remove();
+        createCardElement({
+          id: 'chocolate-chip-banana-muffins',
+          title: 'Chocolate Chip Banana Muffins',
+          meta: 'Prep: 10m | Bake: 20m',
+          tags: 'breakfast baking banana chocolate quick',
+          path: 'recipes/chocolate-chip-banana-muffins.html'
+        });
+        loadImportedRecipes();
+        updateStarIcons();
+        filterRecipes();
+      }
     }
 
-    // Modal Loader with Multi-Tier Fallback
+    // Dynamic Card Builder
+    function createCardElement(recipe) {
+      if (document.getElementById('card-' + recipe.id)) return;
+
+      const grid = document.getElementById('recipeGrid');
+      const cardDiv = document.createElement('div');
+      cardDiv.className = 'recipe-card';
+      cardDiv.id = 'card-' + recipe.id;
+      cardDiv.setAttribute('data-id', recipe.id);
+      cardDiv.setAttribute('data-tags', recipe.tags);
+      cardDiv.onclick = () => openRecipeModal(recipe.id, recipe.path);
+
+      cardDiv.innerHTML = `
+        <div>
+          <div class="card-header">
+            <h2 class="recipe-title">${recipe.title}</h2>
+            <button class="fav-btn" onclick="toggleFavorite(event, '${recipe.id}')" title="Toggle Favorite">☆</button>
+          </div>
+          <div class="recipe-meta">${recipe.meta}</div>
+        </div>
+        <div>
+          <span class="tag">Recipe</span>
+        </div>
+      `;
+      grid.appendChild(cardDiv);
+    }
+
+    // Modal Loader
     async function openRecipeModal(recipeId, filePath) {
       const modalBody = document.getElementById('modalBody');
       const standaloneLink = document.getElementById('standaloneLink');
 
-      // Set direct link target for standalone page view
       if (filePath) {
         standaloneLink.href = filePath;
         standaloneLink.style.display = 'inline-block';
@@ -426,7 +472,7 @@
         standaloneLink.style.display = 'none';
       }
 
-      // 1. Check imported recipes in localStorage
+      // Check imported recipes in localStorage
       const imported = getImportedRecipes().find(r => r.id === recipeId);
       if (imported) {
         modalBody.innerHTML = imported.html;
@@ -436,7 +482,7 @@
         return;
       }
 
-      // 2. Try fetching the file dynamically from subfolder
+      // Fetch file dynamically from subfolder
       if (filePath) {
         try {
           const response = await fetch(filePath);
@@ -455,21 +501,10 @@
           if (h1) currentRecipeTitle = h1.innerText;
 
           document.getElementById('recipeModal').classList.add('open');
-          return;
         } catch (err) {
-          console.warn('Fetch failed, falling back to embedded template:', err);
+          modalBody.innerHTML = `<p style="color:#c85a32;">Unable to load recipe file at <code>${filePath}</code>.</p>`;
+          document.getElementById('recipeModal').classList.add('open');
         }
-      }
-
-      // 3. Fallback to embedded template if fetch fails
-      const localTemplate = document.getElementById('template-' + recipeId);
-      if (localTemplate) {
-        modalBody.innerHTML = localTemplate.innerHTML;
-        currentRecipeTitle = localTemplate.querySelector('h2, h1')?.innerText || 'Recipe';
-        document.getElementById('recipeModal').classList.add('open');
-      } else {
-        modalBody.innerHTML = `<p style="color:#c85a32;">Unable to load recipe content.</p>`;
-        document.getElementById('recipeModal').classList.add('open');
       }
     }
 
@@ -488,6 +523,10 @@
     }
 
     // Web Importer Logic
+    function getImportedRecipes() {
+      return JSON.parse(localStorage.getItem('importedRecipes') || '[]');
+    }
+
     async function importRecipeFromUrl() {
       const urlInput = document.getElementById('importUrlInput');
       const url = urlInput.value.trim();
@@ -563,38 +602,22 @@
 
       } catch (err) {
         console.error(err);
-        alert('Failed to import recipe. Make sure the site is accessible.');
+        alert('Failed to import recipe.');
         document.querySelector('.import-btn').innerText = '📥 Import';
       }
     }
 
     function loadImportedRecipes() {
       const imported = getImportedRecipes();
-      const grid = document.getElementById('recipeGrid');
-
       imported.forEach(recipe => {
-        if (document.getElementById('card-' + recipe.id)) return;
-
-        const cardDiv = document.createElement('div');
-        cardDiv.className = 'recipe-card';
-        cardDiv.id = 'card-' + recipe.id;
-        cardDiv.setAttribute('data-id', recipe.id);
-        cardDiv.setAttribute('data-tags', recipe.tags);
-        cardDiv.onclick = () => openRecipeModal(recipe.id);
-
-        cardDiv.innerHTML = `
-          <div>
-            <div class="card-header">
-              <h2 class="recipe-title">${recipe.title}</h2>
-              <button class="fav-btn" onclick="toggleFavorite(event, '${recipe.id}')" title="Toggle Favorite">☆</button>
-            </div>
-            <div class="recipe-meta">Imported Web Recipe</div>
-          </div>
-          <div><span class="tag">Imported</span></div>
-        `;
-        grid.appendChild(cardDiv);
+        createCardElement({
+          id: recipe.id,
+          title: recipe.title,
+          meta: 'Imported Web Recipe',
+          tags: recipe.tags,
+          path: null
+        });
       });
-
       updateStarIcons();
       filterRecipes();
     }
@@ -654,7 +677,7 @@
       for (let i = 0; i < cards.length; i++) {
         const recipeId = cards[i].getAttribute('data-id');
         const title = cards[i].querySelector('.recipe-title').innerText.toLowerCase();
-        const tags = cards[i].getAttribute('data-tags').toLowerCase();
+        const tags = (cards[i].getAttribute('data-tags') || '').toLowerCase();
         
         const matchesSearch = title.includes(searchText) || tags.includes(searchText);
         let matchesCategory = (activeCategory === 'all') || 
@@ -665,10 +688,7 @@
       }
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      loadImportedRecipes();
-      updateStarIcons();
-    });
+    document.addEventListener('DOMContentLoaded', loadRecipesFromSubfolder);
   </script>
 
 </body>

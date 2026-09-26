@@ -3,29 +3,166 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>No-Bake PB & Banana Granola Bites - Family Recipe Book</title>
 
-  <!-- CATEGORY & FILTER TAGS -->
-  <meta name="keywords" content="breakfast, snack, quick, baking, peanut butter, banana, oats">
-  <meta name="recipeCategory" content="Snack / Breakfast">
-
-  <title>No-Bake Peanut Butter &amp; Banana Granola Bites</title>
+  <!-- CATEGORY & FILTER TAGS FOR DYNAMIC HOMEPAGE AUTO-DISCOVERY -->
+  <meta name="keywords" content="snack, baking, peanut butter, banana, granola, bites, no-bake, quick">
+  <meta name="recipeCategory" content="Snack / No-Bake">
   
+  <!-- Link up one folder level to central stylesheet -->
+  <link rel="stylesheet" href="../style.css">
+
   <style>
-    /* ... your existing styles ... */
+    .back-link {
+      display: inline-block;
+      margin-bottom: 20px;
+      color: var(--secondary-color, #4a6b5d);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .recipe-header {
+      border-bottom: 2px dashed var(--border-color, #e5e7eb);
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+
+    .recipe-meta-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      background-color: #f0f4f2;
+      padding: 12px 16px;
+      border-radius: 8px;
+      color: var(--secondary-color, #4a6b5d);
+      font-weight: 500;
+      font-size: 0.95rem;
+      margin-top: 12px;
+    }
+
+    .checklist {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .checklist li {
+      padding: 10px 0;
+      border-bottom: 1px dashed var(--border-color, #e5e7eb);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .checklist input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary-color, #c85a32);
+      cursor: pointer;
+    }
+
+    .instructions-list {
+      padding-left: 20px;
+    }
+
+    .instructions-list li {
+      margin-bottom: 16px;
+      padding-left: 4px;
+    }
+
+    .instructions-list li::marker {
+      color: var(--primary-color, #c85a32);
+      font-weight: bold;
+    }
   </style>
+
+  <!-- Schema.org JSON-LD Structured Data for AnyList Scraping -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org/",
+    "@type": "Recipe",
+    "name": "No-Bake Peanut Butter & Banana Granola Bites",
+    "description": "Easy, healthy no-bake snack bites made with oats, peanut butter, mashed banana, and honey.",
+    "keywords": "snack, no-bake, granola, peanut butter, banana, oats",
+    "recipeCategory": "Snack",
+    "prepTime": "PT15M",
+    "cookTime": "PT0M",
+    "recipeYield": "12-15 bites",
+    "recipeIngredient": [
+      "1 cup rolled oats",
+      "1/2 cup creamy peanut butter",
+      "1/3 cup honey",
+      "1/2 ripe banana, mashed",
+      "1/2 tsp vanilla extract",
+      "2 tbsp mini chocolate chips (optional)"
+    ],
+    "recipeInstructions": [
+      {
+        "@type": "HowToStep",
+        "text": "Combine oats, peanut butter, honey, mashed banana, and vanilla extract in a bowl."
+      },
+      {
+        "@type": "HowToStep",
+        "text": "Fold in mini chocolate chips or optional mix-ins."
+      },
+      {
+        "@type": "HowToStep",
+        "text": "Chill the mixture in the refrigerator for 15-20 minutes."
+      },
+      {
+        "@type": "HowToStep",
+        "text": "Roll into 1-inch balls and store in the refrigerator or freezer."
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
 
-  <article itemscope itemtype="https://schema.org/Recipe">
-    <h1 itemprop="name">No-Bake Peanut Butter &amp; Banana Granola Bites</h1>
+  <div class="container" itemscope itemtype="https://schema.org/Recipe">
     
-    <!-- Optional: Display tags visually on the page -->
-    <meta itemprop="recipeCategory" content="Snack">
-    <meta itemprop="keywords" content="snack, quick, breakfast">
+    <!-- Top Navigation -->
+    <a href="../index.html" class="back-link">&larr; Back to all recipes</a>
 
-    <div class="meta-info">
-      <p>⏱️ <strong>Prep Time:</strong> <time itemprop="prepTime" datetime="PT10M">10 minutes</time></p>
-      <p>🥣 <strong>Yield:</strong> <span itemprop="recipeYield">12-15 bite-sized balls</span></p>
-    </div>
+    <header class="recipe-header">
+      <h1 itemprop="name">No-Bake PB & Banana Granola Bites</h1>
+      <p class="subtitle" itemprop="description">Easy, kid-friendly snack bites perfect for school lunches and quick energy.</p>
+      
+      <div class="recipe-meta-bar">
+        <span>⏱️ <strong>Prep:</strong> <time itemprop="prepTime" datetime="PT15M">15 mins</time></span>
+        <span>❄️ <strong>Chill:</strong> 20 mins</span>
+        <span>🍪 <strong>Yield:</strong> <span itemprop="recipeYield">12–15 bites</span></span>
+      </div>
+    </header>
 
-    <!-- ... rest of your recipe content ... -->
+    <section>
+      <h2>Ingredients</h2>
+      <ul class="checklist">
+        <li itemprop="recipeIngredient"><label><input type="checkbox"> 1 cup rolled oats</label></li>
+        <li itemprop="recipeIngredient"><label><input type="checkbox"> ½ cup creamy peanut butter</label></li>
+        <li itemprop="recipeIngredient"><label><input type="checkbox"> ⅓ cup honey</label></li>
+        <li itemprop="recipeIngredient"><label><input type="checkbox"> ½ ripe banana, mashed</label></li>
+        <li itemprop="recipeIngredient"><label><input type="checkbox"> ½ tsp vanilla extract</label></li>
+        <li itemprop="recipeIngredient"><label><input type="checkbox"> 2 tbsp mini chocolate chips (optional)</label></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Instructions</h2>
+      <ol class="instructions-list" itemprop="recipeInstructions">
+        <li>In a medium mixing bowl, combine rolled oats, peanut butter, honey, mashed banana, and vanilla extract until well combined.</li>
+        <li>Gently fold in mini chocolate chips or any extra mix-ins.</li>
+        <li>Chill the bowl in the refrigerator for 15 to 20 minutes to firm up the mixture.</li>
+        <li>Roll the chilled mixture into 1-inch balls.</li>
+        <li>Store in an airtight container in the fridge for up to 7 days, or freeze for up to 3 months.</li>
+      </ol>
+    </section>
+
+  </div>
+
+</body>
+</html>

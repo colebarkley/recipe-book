@@ -360,41 +360,49 @@
   let activeCategory = 'all';
   let currentRecipeTitle = 'Recipe';
 
-  // Dynamic Fetch: Reads recipes.json and extracts metadata from each HTML page
+  // Fallback list in case recipes.json network fetch delays
+  const DEFAULT_RECIPES = [
+    {
+      id: "chocolate-chip-banana-muffins",
+      path: "recipes/chocolate-chip-banana-muffins.html"
+    },
+    {
+      id: "no-bake-peanut-butter-banana-granola-bites",
+      path: "recipes/no-bake-peanut-butter-banana-granola-bites.html"
+    }
+  ];
+
   async function loadRecipesFromSubfolder() {
-    const grid = document.getElementById('recipeGrid');
     const loadingMsg = document.getElementById('loadingMsg');
+    let recipeList = DEFAULT_RECIPES;
 
+    // Attempt to pull from recipes.json
     try {
-      // 1. Fetch the recipe index file
       const res = await fetch('recipes.json');
-      if (!res.ok) throw new Error('recipes.json not found');
-      
-      const recipeList = await res.json();
-
-      if (!recipeList || recipeList.length === 0) {
-        if (loadingMsg) loadingMsg.innerText = 'No recipes listed in recipes.json';
-        return;
+      if (res.ok) {
+        const json = await res.json();
+        if (Array.isArray(json) && json.length > 0) {
+          recipeList = json;
+        }
       }
+    } catch (e) {
+      console.warn('Could not load recipes.json, falling back to default list.', e);
+    }
 
-      // 2. Clear loading message
-      if (loadingMsg) loadingMsg.remove();
+    if (loadingMsg) loadingMsg.remove();
 
-      // 3. Loop over each recipe path, fetch HTML, and build the card
-      for (const item of recipeList) {
-        try {
-          const pageRes = await fetch(item.path);
-          if (!pageRes.ok) throw new Error(`Could not load ${item.path}`);
-
+    // Loop and build cards
+    for (const item of recipeList) {
+      try {
+        const pageRes = await fetch(item.path);
+        if (pageRes.ok) {
           const pageText = await pageRes.text();
           const parser = new DOMParser();
           const doc = parser.parseFromString(pageText, 'text/html');
 
-          // Pull title, meta description/bar, and keywords directly from HTML tags
           const title = doc.querySelector('h1')?.innerText || item.id.replace(/-/g, ' ');
           const metaBar = doc.querySelector('.recipe-meta-bar, .meta-info')?.innerText.replace(/\s+/g, ' ').trim() || 'Family Recipe';
           const metaKeywords = doc.querySelector('meta[name="keywords"]')?.getAttribute('content') || '';
-          
           const tags = (title + ' ' + item.path + ' ' + metaKeywords).toLowerCase();
 
           createCardElement({
@@ -404,15 +412,18 @@
             tags: tags,
             path: item.path
           });
-        } catch (fileErr) {
-          console.error(`Error processing file ${item.path}:`, fileErr);
+        } else {
+          // Render basic card if the individual HTML file fetch fails
+          createCardElement({
+            id: item.id,
+            title: item.id.replace(/-/g, ' '),
+            meta: 'Family Recipe',
+            tags: item.id.replace(/-/g, ' '),
+            path: item.path
+          });
         }
-      }
-
-    } catch (err) {
-      console.error('Failed to load recipes.json:', err);
-      if (loadingMsg) {
-        loadingMsg.innerHTML = 'Unable to load recipe list. Verify <code>recipes.json</code> exists in the root directory.';
+      } catch (fileErr) {
+        console.error(`Error loading ${item.path}:`, fileErr);
       }
     }
 
@@ -421,7 +432,6 @@
     filterRecipes();
   }
 
-  // Dynamic Card Builder
   function createCardElement(recipe) {
     if (document.getElementById('card-' + recipe.id)) return;
 
@@ -448,7 +458,6 @@
     grid.appendChild(cardDiv);
   }
 
-  // Modal Loader
   async function openRecipeModal(recipeId, filePath) {
     const modalBody = document.getElementById('modalBody');
     const standaloneLink = document.getElementById('standaloneLink');
@@ -508,7 +517,6 @@
     anchor.click();
   }
 
-  // Web Importer Logic
   function getImportedRecipes() {
     return JSON.parse(localStorage.getItem('importedRecipes') || '[]');
   }

@@ -356,343 +356,326 @@
     </div>
   </div>
 
-  <script>
-    // CONFIGURATION: Repository details
-    const GITHUB_USERNAME = 'colebarkley';
-    const GITHUB_REPO = 'recipe-book';
+<script>
+  let activeCategory = 'all';
+  let currentRecipeTitle = 'Recipe';
 
-    let activeCategory = 'all';
-    let currentRecipeTitle = 'Recipe';
+  // Dynamic Fetch: Reads recipes.json and extracts metadata from each HTML page
+  async function loadRecipesFromSubfolder() {
+    const grid = document.getElementById('recipeGrid');
+    const loadingMsg = document.getElementById('loadingMsg');
 
-    // Auto-discover and fetch all files inside the recipes/ folder via GitHub API
-    async function loadRecipesFromSubfolder() {
-      const grid = document.getElementById('recipeGrid');
-      const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/recipes`;
+    try {
+      // 1. Fetch the recipe index file
+      const res = await fetch('recipes.json');
+      if (!res.ok) throw new Error('recipes.json not found');
+      
+      const recipeList = await res.json();
 
-      try {
-        const response = await fetch(apiUrl);
-        if (!response.ok) throw new Error('Could not fetch directory listing');
-
-        const files = await response.json();
-        const htmlFiles = files.filter(file => file.name.endsWith('.html'));
-
-        if (htmlFiles.length === 0) {
-          document.getElementById('loadingMsg').innerText = 'No recipes found in recipes/ subfolder.';
-          return;
-        }
-
-        document.getElementById('loadingMsg')?.remove();
-
-        for (const file of htmlFiles) {
-          const filePath = `recipes/${file.name}`;
-          const recipeId = file.name.replace('.html', '');
-
-          try {
-            const pageRes = await fetch(filePath);
-            const pageText = await pageRes.text();
-            
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(pageText, 'text/html');
-
-            const title = doc.querySelector('h1')?.innerText || recipeId.replace(/-/g, ' ');
-            const metaBar = doc.querySelector('.recipe-meta-bar, .meta-info')?.innerText.replace(/\s+/g, ' ').trim() || 'Family Recipe';
-
-            // Extract keywords meta tag for category filtering
-            const metaKeywords = doc.querySelector('meta[name="keywords"]')?.getAttribute('content') || '';
-            const tags = (title + ' ' + file.name + ' ' + metaKeywords).toLowerCase();
-
-            createCardElement({
-              id: recipeId,
-              title: title,
-              meta: metaBar,
-              tags: tags,
-              path: filePath
-            });
-          } catch (e) {
-            console.error(`Failed to load ${file.name}:`, e);
-          }
-        }
-
-        loadImportedRecipes();
-        updateStarIcons();
-        filterRecipes();
-
-      } catch (err) {
-        console.warn('GitHub API listing failed or limit reached. Loading fallback...', err);
-        document.getElementById('loadingMsg')?.remove();
-        
-        // Fallback recipe card
-        createCardElement({
-          id: 'chocolate-chip-banana-muffins',
-          title: 'Chocolate Chip Banana Muffins',
-          meta: 'Prep: 10m | Bake: 20m',
-          tags: 'breakfast baking banana chocolate quick snack',
-          path: 'recipes/chocolate-chip-banana-muffins.html'
-        });
-        
-        loadImportedRecipes();
-        updateStarIcons();
-        filterRecipes();
-      }
-    }
-
-    // Dynamic Card Builder
-    function createCardElement(recipe) {
-      if (document.getElementById('card-' + recipe.id)) return;
-
-      const grid = document.getElementById('recipeGrid');
-      const cardDiv = document.createElement('div');
-      cardDiv.className = 'recipe-card';
-      cardDiv.id = 'card-' + recipe.id;
-      cardDiv.setAttribute('data-id', recipe.id);
-      cardDiv.setAttribute('data-tags', recipe.tags);
-      cardDiv.onclick = () => openRecipeModal(recipe.id, recipe.path);
-
-      cardDiv.innerHTML = `
-        <div>
-          <div class="card-header">
-            <h2 class="recipe-title">${recipe.title}</h2>
-            <button class="fav-btn" onclick="toggleFavorite(event, '${recipe.id}')" title="Toggle Favorite">☆</button>
-          </div>
-          <div class="recipe-meta">${recipe.meta}</div>
-        </div>
-        <div>
-          <span class="tag">Recipe</span>
-        </div>
-      `;
-      grid.appendChild(cardDiv);
-    }
-
-    // Modal Loader
-    async function openRecipeModal(recipeId, filePath) {
-      const modalBody = document.getElementById('modalBody');
-      const standaloneLink = document.getElementById('standaloneLink');
-
-      if (filePath) {
-        standaloneLink.href = filePath;
-        standaloneLink.style.display = 'inline-block';
-      } else {
-        standaloneLink.style.display = 'none';
-      }
-
-      // Check imported recipes in localStorage
-      const imported = getImportedRecipes().find(r => r.id === recipeId);
-      if (imported) {
-        modalBody.innerHTML = imported.html;
-        currentRecipeTitle = imported.title;
-        standaloneLink.style.display = 'none';
-        document.getElementById('recipeModal').classList.add('open');
+      if (!recipeList || recipeList.length === 0) {
+        if (loadingMsg) loadingMsg.innerText = 'No recipes listed in recipes.json';
         return;
       }
 
-      // Fetch file dynamically from subfolder
-      if (filePath) {
+      // 2. Clear loading message
+      if (loadingMsg) loadingMsg.remove();
+
+      // 3. Loop over each recipe path, fetch HTML, and build the card
+      for (const item of recipeList) {
         try {
-          const response = await fetch(filePath);
-          if (!response.ok) throw new Error('File not found');
-          
-          const text = await response.text();
+          const pageRes = await fetch(item.path);
+          if (!pageRes.ok) throw new Error(`Could not load ${item.path}`);
+
+          const pageText = await pageRes.text();
           const parser = new DOMParser();
-          const doc = parser.parseFromString(text, 'text/html');
+          const doc = parser.parseFromString(pageText, 'text/html');
 
-          const container = doc.querySelector('.container') || doc.body;
-          const backLink = container.querySelector('.back-link');
-          if (backLink) backLink.remove();
+          // Pull title, meta description/bar, and keywords directly from HTML tags
+          const title = doc.querySelector('h1')?.innerText || item.id.replace(/-/g, ' ');
+          const metaBar = doc.querySelector('.recipe-meta-bar, .meta-info')?.innerText.replace(/\s+/g, ' ').trim() || 'Family Recipe';
+          const metaKeywords = doc.querySelector('meta[name="keywords"]')?.getAttribute('content') || '';
+          
+          const tags = (title + ' ' + item.path + ' ' + metaKeywords).toLowerCase();
 
-          modalBody.innerHTML = container.innerHTML;
-          const h1 = modalBody.querySelector('h1, h2');
-          if (h1) currentRecipeTitle = h1.innerText;
-
-          document.getElementById('recipeModal').classList.add('open');
-        } catch (err) {
-          modalBody.innerHTML = `<p style="color:#c85a32;">Unable to load recipe file at <code>${filePath}</code>.</p>`;
-          document.getElementById('recipeModal').classList.add('open');
+          createCardElement({
+            id: item.id,
+            title: title,
+            meta: metaBar,
+            tags: tags,
+            path: item.path
+          });
+        } catch (fileErr) {
+          console.error(`Error processing file ${item.path}:`, fileErr);
         }
+      }
+
+    } catch (err) {
+      console.error('Failed to load recipes.json:', err);
+      if (loadingMsg) {
+        loadingMsg.innerHTML = 'Unable to load recipe list. Verify <code>recipes.json</code> exists in the root directory.';
       }
     }
 
-    function closeRecipeModal(event) {
-      if (event) event.stopPropagation();
-      document.getElementById('recipeModal').classList.remove('open');
+    loadImportedRecipes();
+    updateStarIcons();
+    filterRecipes();
+  }
+
+  // Dynamic Card Builder
+  function createCardElement(recipe) {
+    if (document.getElementById('card-' + recipe.id)) return;
+
+    const grid = document.getElementById('recipeGrid');
+    const cardDiv = document.createElement('div');
+    cardDiv.className = 'recipe-card';
+    cardDiv.id = 'card-' + recipe.id;
+    cardDiv.setAttribute('data-id', recipe.id);
+    cardDiv.setAttribute('data-tags', recipe.tags || '');
+    cardDiv.onclick = () => openRecipeModal(recipe.id, recipe.path);
+
+    cardDiv.innerHTML = `
+      <div>
+        <div class="card-header">
+          <h2 class="recipe-title">${recipe.title}</h2>
+          <button class="fav-btn" onclick="toggleFavorite(event, '${recipe.id}')" title="Toggle Favorite">☆</button>
+        </div>
+        <div class="recipe-meta">${recipe.meta}</div>
+      </div>
+      <div>
+        <span class="tag" style="font-size:0.75rem; color:#6b7280; font-weight:600;">Recipe</span>
+      </div>
+    `;
+    grid.appendChild(cardDiv);
+  }
+
+  // Modal Loader
+  async function openRecipeModal(recipeId, filePath) {
+    const modalBody = document.getElementById('modalBody');
+    const standaloneLink = document.getElementById('standaloneLink');
+
+    if (filePath) {
+      standaloneLink.href = filePath;
+      standaloneLink.style.display = 'inline-block';
+    } else {
+      standaloneLink.style.display = 'none';
     }
 
-    function saveRecipeFile() {
-      const content = document.getElementById('modalBody').innerText;
-      const blob = new Blob([content], { type: 'text/plain' });
-      const anchor = document.createElement('a');
-      anchor.href = URL.createObjectURL(blob);
-      anchor.download = currentRecipeTitle.toLowerCase().replace(/\s+/g, '-') + '.txt';
-      anchor.click();
+    const imported = getImportedRecipes().find(r => r.id === recipeId);
+    if (imported) {
+      modalBody.innerHTML = imported.html;
+      currentRecipeTitle = imported.title;
+      standaloneLink.style.display = 'none';
+      document.getElementById('recipeModal').classList.add('open');
+      return;
     }
 
-    // Web Importer Logic
-    function getImportedRecipes() {
-      return JSON.parse(localStorage.getItem('importedRecipes') || '[]');
+    if (filePath) {
+      try {
+        const response = await fetch(filePath);
+        if (!response.ok) throw new Error('File not found');
+        
+        const text = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(text, 'text/html');
+
+        const container = doc.querySelector('.container') || doc.body;
+        const backLink = container.querySelector('.back-link');
+        if (backLink) backLink.remove();
+
+        modalBody.innerHTML = container.innerHTML;
+        const h1 = modalBody.querySelector('h1, h2');
+        if (h1) currentRecipeTitle = h1.innerText;
+
+        document.getElementById('recipeModal').classList.add('open');
+      } catch (err) {
+        modalBody.innerHTML = `<p style="color:#c85a32;">Unable to load recipe file at <code>${filePath}</code>.</p>`;
+        document.getElementById('recipeModal').classList.add('open');
+      }
+    }
+  }
+
+  function closeRecipeModal(event) {
+    if (event) event.stopPropagation();
+    document.getElementById('recipeModal').classList.remove('open');
+  }
+
+  function saveRecipeFile() {
+    const content = document.getElementById('modalBody').innerText;
+    const blob = new Blob([content], { type: 'text/plain' });
+    const anchor = document.createElement('a');
+    anchor.href = URL.createObjectURL(blob);
+    anchor.download = currentRecipeTitle.toLowerCase().replace(/\s+/g, '-') + '.txt';
+    anchor.click();
+  }
+
+  // Web Importer Logic
+  function getImportedRecipes() {
+    return JSON.parse(localStorage.getItem('importedRecipes') || '[]');
+  }
+
+  async function importRecipeFromUrl() {
+    const urlInput = document.getElementById('importUrlInput');
+    const url = urlInput.value.trim();
+
+    if (!url) {
+      alert('Please enter a valid recipe URL.');
+      return;
     }
 
-    async function importRecipeFromUrl() {
-      const urlInput = document.getElementById('importUrlInput');
-      const url = urlInput.value.trim();
+    try {
+      const btn = document.querySelector('.import-btn');
+      btn.innerText = 'Extracting...';
 
-      if (!url) {
-        alert('Please enter a valid recipe URL.');
+      const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+      const data = await response.json();
+      
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(data.contents, 'text/html');
+
+      const scripts = doc.querySelectorAll('script[type="application/ld+json"]');
+      let recipeData = null;
+
+      scripts.forEach(script => {
+        try {
+          const parsed = JSON.parse(script.textContent);
+          const found = Array.isArray(parsed) ? parsed.find(item => item['@type'] === 'Recipe') : 
+                        (parsed['@type'] === 'Recipe' ? parsed : (parsed['@graph'] ? parsed['@graph'].find(item => item['@type'] === 'Recipe') : null));
+          if (found) recipeData = found;
+        } catch(e){}
+      });
+
+      if (!recipeData) {
+        alert('Could not find structured recipe data on that page.');
+        btn.innerText = '📥 Import';
         return;
       }
 
-      try {
-        const btn = document.querySelector('.import-btn');
-        btn.innerText = 'Extracting...';
-
-        const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
-        const data = await response.json();
-        
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(data.contents, 'text/html');
-
-        const scripts = doc.querySelectorAll('script[type="application/ld+json"]');
-        let recipeData = null;
-
-        scripts.forEach(script => {
-          try {
-            const parsed = JSON.parse(script.textContent);
-            const found = Array.isArray(parsed) ? parsed.find(item => item['@type'] === 'Recipe') : 
-                          (parsed['@type'] === 'Recipe' ? parsed : (parsed['@graph'] ? parsed['@graph'].find(item => item['@type'] === 'Recipe') : null));
-            if (found) recipeData = found;
-          } catch(e){}
-        });
-
-        if (!recipeData) {
-          alert('Could not find structured recipe data on that page.');
-          btn.innerText = '📥 Import';
-          return;
-        }
-
-        const id = 'imported-' + Date.now();
-        const title = recipeData.name || 'Imported Recipe';
-        const description = recipeData.description || 'Imported from ' + url;
-        const ingredients = (recipeData.recipeIngredient || []).map(i => `<li>${i}</li>`).join('');
-        
-        let instructions = '';
-        if (Array.isArray(recipeData.recipeInstructions)) {
-          instructions = recipeData.recipeInstructions.map(step => `<li>${step.text || step}</li>`).join('');
-        } else if (typeof recipeData.recipeInstructions === 'string') {
-          instructions = `<li>${recipeData.recipeInstructions}</li>`;
-        }
-
-        const newRecipe = {
-          id: id,
-          title: title,
-          tags: 'imported custom ' + title.toLowerCase(),
-          html: `
-            <h2>${title}</h2>
-            <p style="color: #6b7280; font-style: italic;">${description}</p>
-            <h3>Ingredients</h3>
-            <ul>${ingredients}</ul>
-            <h3>Instructions</h3>
-            <ol>${instructions}</ol>
-            <p><a href="${url}" target="_blank" style="color: var(--primary-color);">Source Link</a></p>
-          `
-        };
-
-        const imported = getImportedRecipes();
-        imported.push(newRecipe);
-        localStorage.setItem('importedRecipes', JSON.stringify(imported));
-
-        urlInput.value = '';
-        btn.innerText = '📥 Import';
-        loadImportedRecipes();
-        alert(`Successfully imported "${title}"!`);
-
-      } catch (err) {
-        console.error(err);
-        alert('Failed to import recipe.');
-        document.querySelector('.import-btn').innerText = '📥 Import';
+      const id = 'imported-' + Date.now();
+      const title = recipeData.name || 'Imported Recipe';
+      const description = recipeData.description || 'Imported from ' + url;
+      const ingredients = (recipeData.recipeIngredient || []).map(i => `<li>${i}</li>`).join('');
+      
+      let instructions = '';
+      if (Array.isArray(recipeData.recipeInstructions)) {
+        instructions = recipeData.recipeInstructions.map(step => `<li>${step.text || step}</li>`).join('');
+      } else if (typeof recipeData.recipeInstructions === 'string') {
+        instructions = `<li>${recipeData.recipeInstructions}</li>`;
       }
-    }
 
-    function loadImportedRecipes() {
+      const newRecipe = {
+        id: id,
+        title: title,
+        tags: 'imported custom ' + title.toLowerCase(),
+        html: `
+          <h2>${title}</h2>
+          <p style="color: #6b7280; font-style: italic;">${description}</p>
+          <h3>Ingredients</h3>
+          <ul>${ingredients}</ul>
+          <h3>Instructions</h3>
+          <ol>${instructions}</ol>
+          <p><a href="${url}" target="_blank" style="color: var(--primary-color, #c85a32);">Source Link</a></p>
+        `
+      };
+
       const imported = getImportedRecipes();
-      imported.forEach(recipe => {
-        createCardElement({
-          id: recipe.id,
-          title: recipe.title,
-          meta: 'Imported Web Recipe',
-          tags: recipe.tags,
-          path: null
-        });
+      imported.push(newRecipe);
+      localStorage.setItem('importedRecipes', JSON.stringify(imported));
+
+      urlInput.value = '';
+      btn.innerText = '📥 Import';
+      loadImportedRecipes();
+      alert(`Successfully imported "${title}"!`);
+
+    } catch (err) {
+      console.error(err);
+      alert('Failed to import recipe.');
+      document.querySelector('.import-btn').innerText = '📥 Import';
+    }
+  }
+
+  function loadImportedRecipes() {
+    const imported = getImportedRecipes();
+    imported.forEach(recipe => {
+      createCardElement({
+        id: recipe.id,
+        title: recipe.title,
+        meta: 'Imported Web Recipe',
+        tags: recipe.tags,
+        path: null
       });
-      updateStarIcons();
-      filterRecipes();
-    }
+    });
+    updateStarIcons();
+    filterRecipes();
+  }
 
-    function toggleSearchPanel() {
-      document.getElementById('searchPanel').classList.toggle('open');
-    }
+  function toggleSearchPanel() {
+    document.getElementById('searchPanel').classList.toggle('open');
+  }
 
-    function getFavorites() {
-      return JSON.parse(localStorage.getItem('favoriteRecipes') || '[]');
-    }
+  function getFavorites() {
+    return JSON.parse(localStorage.getItem('favoriteRecipes') || '[]');
+  }
 
-    function toggleFavorite(event, recipeId) {
-      event.preventDefault();
-      event.stopPropagation();
-      let favorites = getFavorites();
-      if (favorites.includes(recipeId)) {
-        favorites = favorites.filter(id => id !== recipeId);
-      } else {
-        favorites.push(recipeId);
-      }
-      localStorage.setItem('favoriteRecipes', JSON.stringify(favorites));
-      updateStarIcons();
-      filterRecipes();
+  function toggleFavorite(event, recipeId) {
+    event.preventDefault();
+    event.stopPropagation();
+    let favorites = getFavorites();
+    if (favorites.includes(recipeId)) {
+      favorites = favorites.filter(id => id !== recipeId);
+    } else {
+      favorites.push(recipeId);
     }
+    localStorage.setItem('favoriteRecipes', JSON.stringify(favorites));
+    updateStarIcons();
+    filterRecipes();
+  }
 
-    function updateStarIcons() {
-      const favorites = getFavorites();
-      const cards = document.getElementsByClassName('recipe-card');
-      for (let i = 0; i < cards.length; i++) {
-        const recipeId = cards[i].getAttribute('data-id');
-        const btn = cards[i].querySelector('.fav-btn');
-        if (btn) {
-          const isFav = favorites.includes(recipeId);
-          btn.innerText = isFav ? '★' : '☆';
-          if (isFav) {
-            btn.classList.add('active');
-          } else {
-            btn.classList.remove('active');
-          }
+  function updateStarIcons() {
+    const favorites = getFavorites();
+    const cards = document.getElementsByClassName('recipe-card');
+    for (let i = 0; i < cards.length; i++) {
+      const recipeId = cards[i].getAttribute('data-id');
+      const btn = cards[i].querySelector('.fav-btn');
+      if (btn) {
+        const isFav = favorites.includes(recipeId);
+        btn.innerText = isFav ? '★' : '☆';
+        if (isFav) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
         }
       }
     }
+  }
 
-    function setCategory(category, buttonElement) {
-      activeCategory = category;
-      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-      buttonElement.classList.add('active');
-      filterRecipes();
+  function setCategory(category, buttonElement) {
+    activeCategory = category;
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+    buttonElement.classList.add('active');
+    filterRecipes();
+  }
+
+  function filterRecipes() {
+    const searchText = document.getElementById('searchInput').value.toLowerCase();
+    const cards = document.getElementsByClassName('recipe-card');
+    const favorites = getFavorites();
+
+    for (let i = 0; i < cards.length; i++) {
+      const recipeId = cards[i].getAttribute('data-id');
+      const title = cards[i].querySelector('.recipe-title').innerText.toLowerCase();
+      const tags = (cards[i].getAttribute('data-tags') || '').toLowerCase();
+      
+      const matchesSearch = title.includes(searchText) || tags.includes(searchText);
+      let matchesCategory = (activeCategory === 'all') || 
+                            (activeCategory === 'favorites' && favorites.includes(recipeId)) || 
+                            tags.includes(activeCategory);
+
+      cards[i].style.display = (matchesSearch && matchesCategory) ? "flex" : "none";
     }
+  }
 
-    function filterRecipes() {
-      const searchText = document.getElementById('searchInput').value.toLowerCase();
-      const cards = document.getElementsByClassName('recipe-card');
-      const favorites = getFavorites();
-
-      for (let i = 0; i < cards.length; i++) {
-        const recipeId = cards[i].getAttribute('data-id');
-        const title = cards[i].querySelector('.recipe-title').innerText.toLowerCase();
-        const tags = (cards[i].getAttribute('data-tags') || '').toLowerCase();
-        
-        const matchesSearch = title.includes(searchText) || tags.includes(searchText);
-        let matchesCategory = (activeCategory === 'all') || 
-                              (activeCategory === 'favorites' && favorites.includes(recipeId)) || 
-                              tags.includes(activeCategory);
-
-        cards[i].style.display = (matchesSearch && matchesCategory) ? "flex" : "none";
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', loadRecipesFromSubfolder);
-  </script>
-
+  document.addEventListener('DOMContentLoaded', loadRecipesFromSubfolder);
+</script>
+  
 </body>
 </html>

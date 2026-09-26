@@ -17,7 +17,7 @@
       </div>
 
       <button class="filter-toggle-btn" onclick="toggleSearchPanel()" title="Search & Filter">
-        <span>🔍 Search & Filter</span>
+        <span>🌪️ Filter / Import</span>
       </button>
     </header>
 
@@ -141,6 +141,7 @@
       filterRecipes();
     }
 
+    // Card builder matching exact screenshot layout
     function createCardElement(recipe) {
       if (document.getElementById('card-' + recipe.id)) return;
 
@@ -152,7 +153,12 @@
       cardDiv.setAttribute('data-tags', recipe.tags || '');
       cardDiv.onclick = () => openRecipeModal(recipe.id, recipe.path);
 
-      const displayTag = (recipe.tags || 'Recipe').split(' ')[0] || 'Family';
+      // Extract tag label for the pill badge
+      let displayTag = 'Recipe';
+      if (recipe.id.includes('muffin') || recipe.tags.includes('chocolate')) displayTag = 'Chocolate';
+      else if (recipe.id.includes('no-bake') || recipe.tags.includes('no-bake')) displayTag = 'No-Bake';
+      else if (recipe.id.includes('lassie') || recipe.tags.includes('grandma')) displayTag = "Grandma's";
+      else displayTag = (recipe.tags || 'Recipe').split(' ')[0];
 
       cardDiv.innerHTML = `
         <div>
@@ -164,7 +170,7 @@
         </div>
         <div class="card-footer">
           <span class="tag-badge">📌 ${displayTag}</span>
-          <span style="font-size: 0.82rem; color: var(--primary-color); font-weight: 600;">View Recipe →</span>
+          <span style="font-size: 0.88rem; color: var(--primary-color); font-weight: 600;">View Recipe →</span>
         </div>
       `;
       grid.appendChild(cardDiv);

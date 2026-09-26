@@ -432,32 +432,36 @@
     filterRecipes();
   }
 
-  function createCardElement(recipe) {
-    if (document.getElementById('card-' + recipe.id)) return;
+function createCardElement(recipe) {
+  if (document.getElementById('card-' + recipe.id)) return;
 
-    const grid = document.getElementById('recipeGrid');
-    const cardDiv = document.createElement('div');
-    cardDiv.className = 'recipe-card';
-    cardDiv.id = 'card-' + recipe.id;
-    cardDiv.setAttribute('data-id', recipe.id);
-    cardDiv.setAttribute('data-tags', recipe.tags || '');
-    cardDiv.onclick = () => openRecipeModal(recipe.id, recipe.path);
+  const grid = document.getElementById('recipeGrid');
+  const cardDiv = document.createElement('div');
+  cardDiv.className = 'recipe-card';
+  cardDiv.id = 'card-' + recipe.id;
+  cardDiv.setAttribute('data-id', recipe.id);
+  cardDiv.setAttribute('data-tags', recipe.tags || '');
+  cardDiv.onclick = () => openRecipeModal(recipe.id, recipe.path);
 
-    cardDiv.innerHTML = `
-      <div>
-        <div class="card-header">
-          <h2 class="recipe-title">${recipe.title}</h2>
-          <button class="fav-btn" onclick="toggleFavorite(event, '${recipe.id}')" title="Toggle Favorite">☆</button>
-        </div>
-        <div class="recipe-meta">${recipe.meta}</div>
+  // Clean up tag text for the pill badge
+  const displayTag = (recipe.tags || 'Recipe').split(' ')[0] || 'Family';
+
+  cardDiv.innerHTML = `
+    <div>
+      <div class="card-top">
+        <h2 class="recipe-title">${recipe.title}</h2>
+        <button class="fav-btn" onclick="toggleFavorite(event, '${recipe.id}')" title="Toggle Favorite">☆</button>
       </div>
-      <div>
-        <span class="tag" style="font-size:0.75rem; color:#6b7280; font-weight:600;">Recipe</span>
-      </div>
-    `;
-    grid.appendChild(cardDiv);
-  }
-
+      <div class="recipe-meta">${recipe.meta}</div>
+    </div>
+    <div class="card-footer">
+      <span class="tag-badge">📌 ${displayTag}</span>
+      <span style="font-size: 0.82rem; color: var(--primary-color); font-weight: 600;">View Recipe →</span>
+    </div>
+  `;
+  grid.appendChild(cardDiv);
+}
+  
   async function openRecipeModal(recipeId, filePath) {
     const modalBody = document.getElementById('modalBody');
     const standaloneLink = document.getElementById('standaloneLink');

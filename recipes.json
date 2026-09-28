@@ -20,4 +20,9 @@
     "id": "taco-dip",
     "path": "recipes/taco-dip.html"
   }
+  ,
+  { 
+    "id": "stove-top-one-dish-chicken-skillet",
+    "path": "recipes/stove-top-one-dish-chicken-skillet.html"
+  }
 ]
